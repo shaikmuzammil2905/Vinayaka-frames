@@ -45,17 +45,15 @@ export const FRAME_FINISHES: FinishType[] = [
   'Fiber Glass / Acrylic',
 ];
 
-import categoryImg from '../assets/category-img.png';
-
 export const CATEGORIES = [
-  { id: 'birthday-frames', name: 'Birthday Frames', image: categoryImg },
-  { id: 'wedding-frames', name: 'Wedding Frames', image: categoryImg },
-  { id: 'baby-frames', name: 'Baby Frames', image: categoryImg },
-  { id: 'death-frames', name: 'Death Frames', image: categoryImg },
-  { id: 'collage-frames', name: 'Collage Frames', image: categoryImg },
-  { id: 'mosaic-frames', name: 'Mosaic Frames', image: categoryImg },
-  { id: 'oil-painting', name: 'Oil Painting', image: categoryImg },
-  { id: 'personalized-gifts', name: 'Personalized Gifts', image: categoryImg },
+  { id: 'birthday-frames', name: 'Birthday Frames', image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'wedding-frames', name: 'Wedding Frames', image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'baby-frames', name: 'Baby Frames', image: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'death-frames', name: 'Death Frames', image: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'collage-frames', name: 'Collage Frames', image: 'https://images.unsplash.com/photo-1507608158173-1dcec673a2e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'mosaic-frames', name: 'Mosaic Frames', image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'oil-painting', name: 'Oil Painting', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'personalized-gifts', name: 'Personalized Gifts', image: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
 ];
 
 export const PRODUCTS: Product[] = [
