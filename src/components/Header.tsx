@@ -74,13 +74,14 @@ export const Header = () => {
 
         {/* Mobile Header */}
         <div className="flex md:hidden items-center justify-between">
-          <button className="p-2 -ml-2 text-text-main">
-            <Menu className="h-6 w-6" />
-          </button>
-          
-          <Link to="/" className="flex-1 flex justify-center">
-            <img src={logo} alt="Vinayak Frames" className="h-12 object-contain" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <button className="p-2 -ml-2 text-text-main">
+              <Menu className="h-6 w-6" />
+            </button>
+            <Link to="/" className="flex justify-start">
+              <img src={logo} alt="Vinayak Frames" className="h-10 object-contain" />
+            </Link>
+          </div>
           
           <div className="flex items-center gap-3">
             <button className="p-2 text-text-main">

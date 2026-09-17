@@ -5,6 +5,9 @@ import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
 import { MOCK_DATA } from '../data/mockData';
 
+import dealImage from '../assets/deal-image.png';
+import dealBg from '../assets/deal-bg.png';
+
 export const Home = () => {
   const newArrivals = MOCK_DATA.products.filter(p => p.isNew).slice(0, 8);
   const bestSellers = MOCK_DATA.products.filter(p => p.isBestSeller).slice(0, 8);
@@ -76,9 +79,9 @@ export const Home = () => {
       )}
 
       {/* Deal of the Day */}
-      <section className="py-12 bg-background-alt">
+      <section className="py-12" style={{ backgroundImage: `url(${dealBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="container-custom">
-          <div className="flex flex-col md:flex-row gap-8 items-center bg-white rounded-3xl p-6 md:p-10 card-shadow">
+          <div className="flex flex-col md:flex-row gap-8 items-center bg-white/95 backdrop-blur-sm rounded-3xl p-6 md:p-10 card-shadow">
             <div className="w-full md:w-1/2">
               <div className="bg-red-100 text-red-600 text-sm font-bold px-4 py-1.5 rounded-full inline-block mb-4">Deal of the Day 🔥</div>
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-text-main mb-4">Save 30% on LED Heart Lamps</h2>
@@ -104,7 +107,7 @@ export const Home = () => {
               </Link>
             </div>
             <div className="w-full md:w-1/2 relative rounded-2xl overflow-hidden aspect-square md:aspect-auto md:h-[400px]">
-              <img src="https://images.unsplash.com/photo-1543881478-f71694f71a93?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Deal of the day" className="w-full h-full object-cover" />
+              <img src={dealImage} alt="Deal of the day" className="w-full h-full object-contain bg-white" />
             </div>
           </div>
         </div>
