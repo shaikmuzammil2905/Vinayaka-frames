@@ -89,7 +89,16 @@ export const Contact = () => {
             </div>
             
             <div className="bg-gray-200 rounded-2xl overflow-hidden aspect-video relative flex items-center justify-center">
-              <span className="text-gray-500 font-medium">Google Maps Embed Placeholder</span>
+              <iframe 
+                src="https://maps.google.com/maps?q=Vinayak%20Frames%2C%20Beside%20Saifullah%20Flyover%20Bridge%2C%20Near%20Vishal%20Mart%2C%20Ramachandra%20Nagar%2C%20Anantapur&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0, position: 'absolute', inset: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Vinayak Frames Location Map"
+              ></iframe>
             </div>
           </div>
         </div>
