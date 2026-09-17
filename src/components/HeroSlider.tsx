@@ -1,0 +1,130 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const slides = [
+  {
+    id: 1,
+    title: "Turn Your Memories Into Beautiful Frames",
+    subtitle: "Personalized frames, thoughtful gifts and heartfelt moments — all in one place.",
+    cta: "Shop Now",
+    link: "/categories",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: 2,
+    title: "Your Memories. Your Frame. Your Style.",
+    subtitle: "Choose your size, finish and personalize your special moment.",
+    cta: "Customize Now",
+    link: "/category/personalized-gifts",
+    image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: 3,
+    title: "Beautiful Frames Made For Every Occasion",
+    subtitle: "Birthday • Wedding • Baby • Family • Memories",
+    cta: "Explore Collection",
+    link: "/categories",
+    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+  }
+];
+
+export const HeroSlider = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="relative w-full h-[450px] md:h-[600px] bg-background-alt overflow-hidden slider-container">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentSlide}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0"
+        >
+          <img 
+            src={slides[currentSlide].image} 
+            alt={slides[currentSlide].title} 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+          
+          <div className="absolute inset-0 flex items-center">
+            <div className="container-custom w-full">
+              <div className="max-w-xl text-white">
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="mb-4 flex flex-wrap gap-2"
+                >
+                  <span className="bg-primary/90 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                    🎁 FREE Gift Packing
+                  </span>
+                  <span className="bg-white/20 text-white border border-white/30 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                    🚚 All India Delivery
+                  </span>
+                </motion.div>
+                
+                <motion.h1 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-4 text-white"
+                >
+                  {slides[currentSlide].title}
+                </motion.h1>
+                
+                <motion.p 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                  className="text-base md:text-lg text-white/90 mb-8 max-w-lg"
+                >
+                  {slides[currentSlide].subtitle}
+                </motion.p>
+                
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                >
+                  <Link 
+                    to={slides[currentSlide].link}
+                    className="inline-block bg-primary text-white font-medium px-8 py-3.5 rounded-full hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30"
+                  >
+                    {slides[currentSlide].cta}
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Indicators */}
+      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-10">
+        {slides.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentSlide(idx)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              idx === currentSlide ? 'w-8 bg-primary' : 'w-2 bg-white/50 hover:bg-white'
+            }`}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default HeroSlider;

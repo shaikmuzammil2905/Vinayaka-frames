@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f59e0b; /* Yellow/Golden */
+  --color-primary-hover: #d97706;
+  --color-primary-light: #fef3c7;
+  
+  --color-accent: #ffedd5;
+  --color-accent-hover: #fed7aa;
+  
+  --color-background: #ffffff;
+  --color-background-alt: #fffdf5; /* Warm cream section background */
+  
+  --color-surface: #ffffff;
+  --color-surface-hover: #f8fafc;
+  
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  
+  --color-border: #e2e8f0;
+
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  
+  --radius-card: 1rem;
+  --radius-button: 0.5rem;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-main font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight text-text-main;
+  }
+}
+
+@layer utilities {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+  
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .card-shadow {
+    @apply shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom styles for Framer Motion slider to not overflow */
+.slider-container {
+  overflow: hidden;
+}
