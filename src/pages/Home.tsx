@@ -80,33 +80,43 @@ export const Home = () => {
       )}
 
       {/* Deal of the Day */}
-      <section className="py-12">
+      <section className="py-12 bg-background-alt" style={{ backgroundImage: `url(${dealBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="container-custom">
-          <div className="relative rounded-3xl overflow-hidden shadow-lg w-full">
-            <img src={dealBanner} alt="Deal of the Day" className="w-full h-auto object-cover md:min-h-[400px] min-h-[500px]" />
+          <div className="flex flex-col md:flex-row gap-8 items-center bg-white/95 backdrop-blur-sm rounded-3xl p-6 md:p-10 card-shadow min-h-[400px]">
             
-            <div className="absolute inset-0 flex flex-col justify-end items-center md:items-start md:justify-center p-8 md:p-16">
-               <div className="mt-auto md:mt-0 flex flex-col items-center md:items-start gap-6 w-full md:w-1/2">
-                  <div className="flex gap-4">
-                    <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 md:p-4 text-center min-w-[70px] md:min-w-[80px] shadow-sm border border-white/20">
-                      <span className="block text-xl md:text-3xl font-bold text-primary">12</span>
-                      <span className="text-xs md:text-sm font-medium text-text-muted uppercase tracking-wider">Hours</span>
-                    </div>
-                    <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 md:p-4 text-center min-w-[70px] md:min-w-[80px] shadow-sm border border-white/20">
-                      <span className="block text-xl md:text-3xl font-bold text-primary">45</span>
-                      <span className="text-xs md:text-sm font-medium text-text-muted uppercase tracking-wider">Mins</span>
-                    </div>
-                    <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 md:p-4 text-center min-w-[70px] md:min-w-[80px] shadow-sm border border-white/20">
-                      <span className="block text-xl md:text-3xl font-bold text-primary">30</span>
-                      <span className="text-xs md:text-sm font-medium text-text-muted uppercase tracking-wider">Secs</span>
-                    </div>
-                  </div>
-                  
-                  <Link to="/product/p3" className="inline-block bg-primary text-white font-semibold px-10 py-4 rounded-full hover:bg-primary-hover transition-all transform hover:scale-105 shadow-md text-lg">
-                    Shop Deal Now
-                  </Link>
-               </div>
+            {/* Left Content Column */}
+            <div className="w-full md:w-1/2 flex flex-col items-start justify-center">
+              <div className="bg-red-100 text-red-600 text-sm font-bold px-4 py-1.5 rounded-full inline-block mb-4">Deal of the Day 🔥</div>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-text-main mb-4 leading-tight">Save 30% on LED Heart Lamps</h2>
+              <p className="text-text-muted mb-6 text-base md:text-lg">A glowing LED lamp in a beautiful heart shape. Personalize it with a special message. Offer valid today only.</p>
+              
+              {/* Countdown */}
+              <div className="flex flex-row gap-4 mb-8 w-full max-w-[360px]">
+                <div className="bg-gray-100 rounded-lg p-3 flex-1 flex flex-col items-center justify-center">
+                  <span className="block text-2xl font-bold text-primary leading-none mb-1">12</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider">HOURS</span>
+                </div>
+                <div className="bg-gray-100 rounded-lg p-3 flex-1 flex flex-col items-center justify-center">
+                  <span className="block text-2xl font-bold text-primary leading-none mb-1">45</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider">MINS</span>
+                </div>
+                <div className="bg-gray-100 rounded-lg p-3 flex-1 flex flex-col items-center justify-center">
+                  <span className="block text-2xl font-bold text-primary leading-none mb-1">30</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider">SECS</span>
+                </div>
+              </div>
+              
+              {/* CTA */}
+              <Link to="/product/p3" className="inline-block bg-primary text-white font-medium px-8 py-3.5 rounded-full hover:bg-primary-hover transition-colors shadow-sm">
+                Shop Deal Now →
+              </Link>
             </div>
+            
+            {/* Right Image Column */}
+            <div className="w-full md:w-1/2 flex justify-center items-center rounded-2xl overflow-hidden md:h-[400px]">
+              <img src={dealImage} alt="Deal of the day" className="w-full max-w-md h-auto object-contain drop-shadow-lg" />
+            </div>
+
           </div>
         </div>
       </section>
