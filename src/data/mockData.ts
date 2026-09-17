@@ -45,6 +45,8 @@ export const FRAME_FINISHES: FinishType[] = [
   'Fiber Glass / Acrylic',
 ];
 
+import dealImage from '../assets/deal-image.png';
+
 export const CATEGORIES = [
   { id: 'birthday-frames', name: 'Birthday Frames', image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
   { id: 'wedding-frames', name: 'Wedding Frames', image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
@@ -102,7 +104,7 @@ export const PRODUCTS: Product[] = [
     id: 'p3',
     name: 'LED Heart Lamp',
     category: 'Personalized Gifts',
-    images: ['https://images.unsplash.com/photo-1543881478-f71694f71a93?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
+    images: [dealImage],
     description: 'A glowing LED lamp in a beautiful heart shape. Personalize it with a special message.',
     rating: 4.7,
     reviews: 42,
