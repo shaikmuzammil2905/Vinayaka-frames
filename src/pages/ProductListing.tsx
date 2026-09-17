@@ -3,13 +3,20 @@ import { useParams } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
 import { MOCK_DATA } from '../data/mockData';
 
-export const ProductListing = () => {
+interface ProductListingProps {
+  isDealsPage?: boolean;
+}
+
+export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = false }) => {
   const { categoryId } = useParams<{ categoryId?: string }>();
   
   let products = MOCK_DATA.products;
   let title = "All Products";
   
-  if (categoryId) {
+  if (isDealsPage) {
+    title = "Today's Deals";
+    products = MOCK_DATA.products.filter(p => p.discount !== undefined && p.discount > 0);
+  } else if (categoryId) {
     const category = MOCK_DATA.categories.find(c => c.id === categoryId);
     if (category) {
       title = category.name;

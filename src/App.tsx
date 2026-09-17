@@ -23,6 +23,7 @@ function App() {
             <main className="flex-1 bg-gray-50">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/deals" element={<ProductListing isDealsPage={true} />} />
                 <Route path="/categories" element={<ProductListing />} />
                 <Route path="/category/:categoryId" element={<ProductListing />} />
                 <Route path="/product/:productId" element={<ProductDetail />} />

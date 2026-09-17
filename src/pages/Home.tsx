@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HeroSlider } from '../components/HeroSlider';
 import { CategoryCard } from '../components/CategoryCard';
@@ -6,13 +6,34 @@ import { ProductCarousel } from '../components/ProductCarousel';
 import { MOCK_DATA } from '../data/mockData';
 
 import dealImage from '../assets/deal-image.png';
-import dealBg from '../assets/deal-bg.png';
-import dealBanner from '../assets/deal-banner.png';
 
 export const Home = () => {
   const newArrivals = MOCK_DATA.products.filter(p => p.isNew).slice(0, 8);
   const bestSellers = MOCK_DATA.products.filter(p => p.isBestSeller).slice(0, 8);
   const trending = MOCK_DATA.products.filter(p => p.isTrending).slice(0, 8);
+
+  // Countdown timer logic for Deal of the Day
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 12,
+    minutes: 45,
+    seconds: 30
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        } else if (prev.hours > 0) {
+          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        }
+        return prev;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="pb-16 md:pb-0">
@@ -82,43 +103,42 @@ export const Home = () => {
       {/* Deal of the Day */}
       <section className="py-12">
         <div className="container-custom">
-          <div className="relative w-full rounded-3xl overflow-hidden shadow-xl min-h-[400px] md:min-h-[500px] flex items-center">
-            {/* Background Image positioned to the right */}
-            <div className="absolute inset-0 w-full h-full">
-               <img src={dealBanner} alt="Deal of the Day Background" className="w-full h-full object-cover object-right md:object-center" />
-            </div>
+          <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col md:flex-row items-stretch w-full min-h-[400px]">
             
-            {/* Gradient Overlay for Text Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-white via-white/90 to-transparent md:w-2/3"></div>
-            
-            {/* Content */}
-            <div className="relative z-10 w-full md:w-1/2 p-8 md:p-16 flex flex-col items-start justify-center mt-32 md:mt-0">
-              <div className="bg-red-100 text-red-600 text-sm font-bold px-4 py-1.5 rounded-full inline-block mb-4 shadow-sm">Deal of the Day 🔥</div>
+            {/* Left Content */}
+            <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col items-start justify-center relative z-10">
+              <div className="bg-red-100 text-red-600 text-sm font-bold px-4 py-1.5 rounded-full inline-block mb-4">Deal of the Day 🔥</div>
               
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-4 leading-tight">Save 30% on LED Heart Lamps</h2>
-              <p className="text-gray-700 mb-8 text-base md:text-lg max-w-md">A glowing LED lamp in a beautiful heart shape. Personalize it with a special message. Offer valid today only.</p>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-gray-900 mb-4 leading-tight">Save 30% on LED Heart Lamps</h2>
+              <p className="text-gray-600 mb-8 text-base md:text-lg max-w-md">A glowing LED lamp in a beautiful heart shape. Personalize it with a special message. Offer valid today only.</p>
               
               {/* Countdown */}
               <div className="flex flex-row gap-3 md:gap-4 mb-8">
-                <div className="bg-orange-50/90 backdrop-blur-sm rounded-xl p-3 md:p-4 w-[75px] md:w-[90px] flex flex-col items-center justify-center border border-orange-100 shadow-sm">
-                  <span className="block text-2xl md:text-3xl font-bold text-primary leading-none mb-1">12</span>
-                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">HOURS</span>
+                <div className="bg-orange-50 rounded-xl p-3 md:p-4 w-[75px] md:w-[90px] flex flex-col items-center justify-center border border-orange-100">
+                  <span className="block text-3xl md:text-4xl font-bold text-primary leading-none mb-1">{String(timeLeft.hours).padStart(2, '0')}</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">HOURS</span>
                 </div>
-                <div className="bg-orange-50/90 backdrop-blur-sm rounded-xl p-3 md:p-4 w-[75px] md:w-[90px] flex flex-col items-center justify-center border border-orange-100 shadow-sm">
-                  <span className="block text-2xl md:text-3xl font-bold text-primary leading-none mb-1">45</span>
-                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">MINS</span>
+                <div className="bg-orange-50 rounded-xl p-3 md:p-4 w-[75px] md:w-[90px] flex flex-col items-center justify-center border border-orange-100">
+                  <span className="block text-3xl md:text-4xl font-bold text-primary leading-none mb-1">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">MINS</span>
                 </div>
-                <div className="bg-orange-50/90 backdrop-blur-sm rounded-xl p-3 md:p-4 w-[75px] md:w-[90px] flex flex-col items-center justify-center border border-orange-100 shadow-sm">
-                  <span className="block text-2xl md:text-3xl font-bold text-primary leading-none mb-1">30</span>
-                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">SECS</span>
+                <div className="bg-orange-50 rounded-xl p-3 md:p-4 w-[75px] md:w-[90px] flex flex-col items-center justify-center border border-orange-100">
+                  <span className="block text-3xl md:text-4xl font-bold text-primary leading-none mb-1">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">SECS</span>
                 </div>
               </div>
               
               {/* CTA */}
-              <Link to="/product/p3" className="inline-block bg-primary text-white font-bold px-8 py-3.5 md:px-10 md:py-4 rounded-full hover:bg-primary-hover transition-all shadow-md text-base md:text-lg">
+              <Link to="/deals" className="inline-block bg-primary text-white font-bold px-8 py-3.5 md:px-10 md:py-4 rounded-full hover:bg-primary-hover transition-all shadow-md text-base md:text-lg">
                 Shop Deal Now →
               </Link>
             </div>
+
+            {/* Right Image */}
+            <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-gradient-to-br from-orange-50/50 to-white flex items-center justify-center p-8">
+               <img src={dealImage} alt="LED Heart Lamp" className="w-full h-full object-contain max-h-[400px]" />
+            </div>
+
           </div>
         </div>
       </section>
