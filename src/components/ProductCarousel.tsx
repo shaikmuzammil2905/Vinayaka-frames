@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ProductCard } from './ProductCard';
 import { Product } from '../data/mockData';
 import { Link } from 'react-router-dom';
@@ -11,8 +11,30 @@ interface ProductCarouselProps {
 }
 
 export const ProductCarousel: React.FC<ProductCarouselProps> = ({ title, products, viewAllLink }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let scrollAmount = 0;
+    const step = 1;
+    const interval = setInterval(() => {
+      if (scrollContainer) {
+        scrollContainer.scrollLeft += step;
+        scrollAmount += step;
+        
+        if (scrollContainer.scrollLeft >= (scrollContainer.scrollWidth - scrollContainer.clientWidth)) {
+           scrollContainer.scrollLeft = 0;
+        }
+      }
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <section className="py-10 md:py-16 bg-white overflow-hidden">
+    <section className="py-6 md:py-10 bg-white overflow-hidden">
       <div className="container-custom">
         <div className="flex items-end justify-between mb-8">
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-text-main relative pb-3">
@@ -26,7 +48,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ title, product
           )}
         </div>
 
-        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-6 hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 snap-x">
+        <div ref={scrollRef} className="flex overflow-x-auto gap-4 md:gap-6 pb-6 hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
           {products.map(product => (
             <div key={product.id} className="min-w-[200px] w-[200px] md:min-w-[250px] md:w-[250px] flex-shrink-0 snap-start">
               <ProductCard product={product} />

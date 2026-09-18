@@ -19,7 +19,7 @@ const slides = [
     subtitle: "Choose your size, finish and personalize your special moment.",
     cta: "Customize Now",
     link: "/category/personalized-gifts",
-    image: "https://images.unsplash.com/photo-1583847268964-b28ce8f31586?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    image: heroImage1,
   },
   {
     id: 3,

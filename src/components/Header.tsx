@@ -96,7 +96,7 @@ export const Header = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="p-2 text-text-main">
+            <button onClick={() => setIsMenuOpen(true)} className="p-2 text-text-main">
               <Search className="h-6 w-6" />
             </button>
             <Link to="/cart" className="p-2 -mr-2 text-text-main relative">
