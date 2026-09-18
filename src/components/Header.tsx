@@ -122,6 +122,7 @@ export const Header = () => {
       <nav className="hidden md:block border-t border-gray-100">
         <div className="container-custom">
           <ul className="flex items-center justify-center gap-6 py-3 text-sm font-medium">
+            <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
             <li><Link to="/category/god-frames" className="hover:text-primary transition-colors">God Frames</Link></li>
             <li><Link to="/category/no-edit-frames" className="hover:text-primary transition-colors">No-Edit Frames</Link></li>
             <li><Link to="/category/birthday-frames" className="hover:text-primary transition-colors">Birthday Frames</Link></li>
