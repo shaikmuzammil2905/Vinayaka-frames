@@ -5,7 +5,7 @@ import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
 import { MOCK_DATA } from '../data/mockData';
 
-import dealImage from '../assets/deal-image-16.png';
+import dealImage from '../assets/deal-image-9.png';
 import grandLookImage from '../assets/grand-look.png';
 import ctaBg from '../assets/cta-bg.png';
 import promoImage from '../assets/promo-image.png';
