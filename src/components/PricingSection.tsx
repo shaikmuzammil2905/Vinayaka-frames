@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Check, Upload } from 'lucide-react';
 
 import frame1 from '../assets/20260918_162125.jpg.jpeg';
 import frame2 from '../assets/20260918_162341.jpg.jpeg';
@@ -10,6 +10,14 @@ import frame6 from '../assets/20260918_163402.jpg.jpeg';
 
 export const PricingSection = () => {
   const [selectedFrame, setSelectedFrame] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
 
   const pricingTiers = [
     { size: '8×12', price: 549, mp: 1098 },
@@ -34,12 +42,12 @@ export const PricingSection = () => {
       return;
     }
     const frame = frames.find(f => f.id === selectedFrame);
-    const message = `Hello Vinayak Frames! I would like to order a Lightning Frame.\nSelected Style: ${frame?.name}\nPlease let me know the process to order.`;
+    const message = `Hello Vinayak Frames! I would like to order a Lightning Frame.\nSelected Style: ${frame?.name}\nPhoto Uploaded: ${selectedImage ? 'Yes (' + selectedImage.name + ')' : 'No'}\nPlease let me know the process to order.`;
     window.open(`https://wa.me/919398277441?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
-    <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+    <section id="led-lighting" className="py-16 bg-gradient-to-b from-gray-50 to-white scroll-mt-24">
       <div className="container-custom">
         <div className="text-center mb-12">
           <div className="inline-block bg-red-100 text-red-600 font-bold px-4 py-1.5 rounded-full mb-4 animate-pulse">
@@ -107,6 +115,27 @@ export const PricingSection = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Photo Upload Section */}
+            <h3 className="text-2xl font-serif font-bold text-text-main mb-6 mt-10">Upload Your Photo (Optional)</h3>
+            <div 
+              className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer flex flex-col items-center justify-center border-primary/30 hover:border-primary/60" 
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+              <Upload className="h-10 w-10 text-primary mb-4" />
+              {selectedImage ? (
+                <div className="text-text-main font-medium flex items-center gap-2">
+                  <span className="text-green-600"><Check className="h-5 w-5" /></span>
+                  Selected: {selectedImage.name}
+                </div>
+              ) : (
+                <>
+                  <p className="text-text-main font-medium mb-1">Click to select the picture for your frame</p>
+                  <p className="text-sm text-text-muted">JPG, PNG or WEBP (You can also send it directly on WhatsApp)</p>
+                </>
+              )}
             </div>
           </div>
         </div>
