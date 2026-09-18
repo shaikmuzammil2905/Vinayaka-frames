@@ -106,7 +106,7 @@ export const Home = () => {
           <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col md:flex-row items-stretch w-full min-h-[400px]">
             
             {/* Left Content */}
-            <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col items-start justify-center relative z-10">
+            <div className="w-full md:w-[55%] p-8 md:p-12 lg:p-16 flex flex-col items-start justify-center relative z-10">
               <div className="bg-red-100 text-red-600 text-sm font-bold px-4 py-1.5 rounded-full inline-block mb-4">Deal of the Day 🔥</div>
               
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-gray-900 mb-4 leading-tight">Save 30% on LED Heart Lamps</h2>
@@ -135,8 +135,8 @@ export const Home = () => {
             </div>
 
             {/* Right Image */}
-            <div className="w-full md:w-1/2 h-80 md:h-auto relative bg-gradient-to-br from-orange-50/50 to-white flex items-center justify-center">
-               <img src={dealImage} alt="Deal Image" className="w-full h-full object-cover object-right md:rounded-r-3xl md:rounded-l-none rounded-b-3xl md:rounded-t-none" />
+            <div className="w-full md:w-[45%] h-[300px] md:h-auto relative bg-gradient-to-br from-orange-50/50 to-white flex items-center justify-center p-4 md:p-8">
+               <img src={dealImage} alt="Deal Image" className="w-full h-full object-contain" />
             </div>
 
           </div>
