@@ -9,6 +9,7 @@ import dealImage from '../assets/deal-image-9.png';
 import grandLookImage from '../assets/grand-look.png';
 import ctaBg from '../assets/cta-bg.png';
 import promoImage from '../assets/promo-image.png';
+import promoBg from '../assets/promo-bg.png';
 
 export const Home = () => {
   const newArrivals = MOCK_DATA.products.filter(p => p.isNew).slice(0, 8);
@@ -87,7 +88,7 @@ export const Home = () => {
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link to="/category/birthday-frames" className="group relative rounded-2xl overflow-hidden aspect-[16/9] md:aspect-auto md:h-48 card-shadow">
-              <img src={promoImage} alt="Birthday" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img src={promoBg} alt="Birthday" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-black/40"></div>
               <div className="absolute inset-0 p-6 flex flex-col justify-center">
                 <h3 className="text-2xl font-serif font-bold text-white mb-2">Birthday Special</h3>

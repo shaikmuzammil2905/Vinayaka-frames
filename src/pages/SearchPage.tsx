@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import searchAnim from '../assets/search-anim.png';
 
 export const SearchPage = () => {
   const [query, setQuery] = useState('');
@@ -30,6 +31,10 @@ export const SearchPage = () => {
           <Search className="h-6 w-6" />
         </button>
       </form>
+
+      <div className="mt-auto pt-16 w-full max-w-lg flex flex-col items-center">
+        <img src={searchAnim} alt="Gifting Studio" className="w-full h-auto object-contain" />
+      </div>
     </div>
   );
 };
