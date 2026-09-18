@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { HeroSlider } from '../components/HeroSlider';
 import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
-import { PricingSection } from '../components/PricingSection';
 import { CustomerReviews } from '../components/CustomerReviews';
 import { MOCK_DATA } from '../data/mockData';
 
@@ -179,8 +178,6 @@ export const Home = () => {
       {trending.length > 0 && (
         <ProductCarousel title="Trending Gifts" products={trending} />
       )}
-
-      <PricingSection />
       
       <CustomerReviews />
 

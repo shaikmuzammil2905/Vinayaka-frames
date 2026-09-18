@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_DATA, FinishType, SizeOption } from '../data/mockData';
+import { MOCK_DATA, FinishType, SizeOption, LED_FRAME_SIZES } from '../data/mockData';
 import { useCart } from '../context/CartContext';
 import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check } from 'lucide-react';
 
@@ -58,7 +58,17 @@ export const ProductDetail = () => {
     return <div className="container-custom py-20 text-center">Product not found</div>;
   }
 
-  const currentPrice = selectedSize ? selectedSize.price : product.price;
+  const getPriceForSize = (sizeOption: SizeOption, finish?: FinishType) => {
+    // Normalization check since spacing might be slightly different in size strings
+    const normalizeSize = (s: string) => s.replace(/\s/g, '');
+    if (finish === 'LED Lighting') {
+      const ledMatch = LED_FRAME_SIZES.find(s => normalizeSize(s.size) === normalizeSize(sizeOption.size));
+      if (ledMatch) return ledMatch.price;
+    }
+    return sizeOption.price;
+  };
+
+  const currentPrice = selectedSize ? getPriceForSize(selectedSize, selectedFinish) : product.price;
 
   const handleAddToCart = () => {
     addToCart({
@@ -71,6 +81,7 @@ export const ProductDetail = () => {
         photoUrl: photoUploaded ? 'uploaded-temp-url' : undefined,
         customName: customName || undefined,
         customMessage: customMessage || undefined,
+        frameStyle: selectedFrameStyle ? frames.find(f => f.id === selectedFrameStyle)?.name : undefined,
       },
       itemPrice: currentPrice,
     });
@@ -80,6 +91,21 @@ export const ProductDetail = () => {
   const handleBuyNow = () => {
     handleAddToCart();
     navigate('/checkout');
+  };
+
+  const handleWhatsApp = () => {
+    const frameName = selectedFrameStyle ? frames.find(f => f.id === selectedFrameStyle)?.name : 'None selected';
+    const message = `Hello, I want to enquire/order this product.
+
+Product: ${product.name}
+Size: ${selectedSize?.size || 'N/A'}
+Finish Type: ${selectedFinish || 'N/A'}
+Frame: ${frameName}
+Quantity: ${quantity}
+Price: ₹${currentPrice.toLocaleString('en-IN')}
+
+Please confirm availability and order details.`;
+    window.open(`https://wa.me/919398277441?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
@@ -145,7 +171,7 @@ export const ProductDetail = () => {
                           : 'border-gray-200 text-text-main hover:border-primary'
                       }`}
                     >
-                      {s.size} — ₹{s.price}
+                      {s.size} — ₹{getPriceForSize(s, selectedFinish)}
                     </button>
                   ))}
                 </div>
@@ -280,14 +306,12 @@ export const ProductDetail = () => {
               </button>
             </div>
             
-            <a 
-              href="https://wa.me/919398277441" 
-              target="_blank" 
-              rel="noreferrer"
+            <button 
+              onClick={handleWhatsApp}
               className="w-full bg-[#25D366] text-white font-medium h-12 rounded-xl hover:bg-[#128C7E] transition-colors flex items-center justify-center gap-2 mb-8 shadow-sm"
             >
               Order / Enquire on WhatsApp
-            </a>
+            </button>
 
             {/* Description */}
             <div className="border-t border-gray-100 pt-8">

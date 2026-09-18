@@ -38,6 +38,14 @@ export const FRAME_SIZES: SizeOption[] = [
   { size: '24 × 36', price: 2449 },
 ];
 
+export const LED_FRAME_SIZES: SizeOption[] = [
+  { size: '8 × 12', price: 549 },
+  { size: '12 × 18', price: 999 },
+  { size: '16 × 24', price: 1749 },
+  { size: '20 × 30', price: 2749 },
+  { size: '24 × 36', price: 3749 },
+];
+
 export const FRAME_FINISHES: FinishType[] = [
   'Glitter',
   'Glossy',

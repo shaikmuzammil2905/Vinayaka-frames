@@ -12,6 +12,7 @@ export interface CartItem {
     photoUrl?: string;
     customName?: string;
     customMessage?: string;
+    frameStyle?: string;
   };
   itemPrice: number;
 }
