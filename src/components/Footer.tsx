@@ -2,10 +2,20 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail } from 'lucide-react';
 import logo from '../assets/logo.jpg';
+import footerAnim from '../assets/footer-anim.png';
 
 export const Footer = () => {
   return (
-    <footer className="bg-background-alt pt-16 pb-8 border-t border-border mt-auto">
+    <footer className="bg-background-alt pt-0 pb-8 mt-auto border-t border-border">
+      {/* Animated Top Section */}
+      <div className="w-full overflow-hidden bg-primary mb-12">
+        <div className="flex animate-marquee whitespace-nowrap py-4 items-center">
+          {[...Array(5)].map((_, i) => (
+            <img key={i} src={footerAnim} alt="Special Edition" className="h-24 md:h-32 object-contain mx-8 inline-block opacity-90 hover:opacity-100 transition-opacity" />
+          ))}
+        </div>
+      </div>
+
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           

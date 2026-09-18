@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_DATA, FinishType, SizeOption } from '../data/mockData';
 import { useCart } from '../context/CartContext';
@@ -18,6 +18,17 @@ export const ProductDetail = () => {
   const [customName, setCustomName] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [photoUploaded, setPhotoUploaded] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setPhotoUploaded(true);
+    }
+  };
   
   useEffect(() => {
     if (product) {
@@ -153,9 +164,16 @@ export const ProductDetail = () => {
                 {product.personalization.photoUpload && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-text-main mb-2">Upload Photo (JPG/PNG)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                    />
                     <div 
                       className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${photoUploaded ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'}`}
-                      onClick={() => setPhotoUploaded(true)}
+                      onClick={handlePhotoClick}
                     >
                       <ImageIcon className={`h-8 w-8 mx-auto mb-2 ${photoUploaded ? 'text-green-500' : 'text-gray-400'}`} />
                       <p className="text-sm font-medium">{photoUploaded ? 'Photo Uploaded Successfully!' : 'Click to Upload Photo'}</p>
@@ -193,22 +211,22 @@ export const ProductDetail = () => {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <div className="flex items-center border border-gray-300 rounded-xl h-12 w-32 bg-white">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="flex-1 flex justify-center text-text-muted hover:text-primary">-</button>
-                <span className="font-medium">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="flex-1 flex justify-center text-text-muted hover:text-primary">+</button>
+              <div className="flex items-center border border-gray-300 rounded-xl h-14 md:h-16 w-full sm:w-32 bg-white">
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="flex-1 flex justify-center text-text-muted hover:text-primary text-xl font-bold">-</button>
+                <span className="font-medium text-lg">{quantity}</span>
+                <button onClick={() => setQuantity(quantity + 1)} className="flex-1 flex justify-center text-text-muted hover:text-primary text-xl font-bold">+</button>
               </div>
               
               <button 
                 onClick={handleAddToCart}
-                className="flex-1 bg-white border-2 border-primary text-primary font-medium h-12 rounded-xl hover:bg-primary hover:text-white transition-colors"
+                className="flex-1 bg-white border-2 border-primary text-primary font-bold h-14 md:h-16 text-lg rounded-xl hover:bg-primary hover:text-white transition-colors"
               >
                 Add to Cart
               </button>
               
               <button 
                 onClick={handleBuyNow}
-                className="flex-1 bg-primary text-white font-medium h-12 rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20"
+                className="flex-1 bg-primary text-white font-bold h-14 md:h-16 text-lg rounded-xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20"
               >
                 Buy Now
               </button>

@@ -1,4 +1,4 @@
-export type FinishType = 'Glitter' | 'Glossy' | 'Matte' | 'Fiber Glass / Acrylic';
+export type FinishType = 'Glitter' | 'Glossy' | 'Matte' | 'Fiber Glass / Acrylic' | 'LED Lighting';
 
 export interface SizeOption {
   size: string;
@@ -43,11 +43,14 @@ export const FRAME_FINISHES: FinishType[] = [
   'Glossy',
   'Matte',
   'Fiber Glass / Acrylic',
+  'LED Lighting',
 ];
 
 import dealImage from '../assets/deal-image.png';
 
 export const CATEGORIES = [
+  { id: 'god-frames', name: 'God Frames', image: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
+  { id: 'no-edit-frames', name: 'No-Edit Frames', image: 'https://images.unsplash.com/photo-1577083165350-14e4ec93e7f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
   { id: 'birthday-frames', name: 'Birthday Frames', image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
   { id: 'wedding-frames', name: 'Wedding Frames', image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
   { id: 'baby-frames', name: 'Baby Frames', image: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },

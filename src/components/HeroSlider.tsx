@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import heroImage1 from '../assets/hero-slide-1.png';
 
 const slides = [
   {
@@ -9,7 +10,7 @@ const slides = [
     subtitle: "Personalized frames, thoughtful gifts and heartfelt moments — all in one place.",
     cta: "Shop Now",
     link: "/categories",
-    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    image: heroImage1,
   },
   {
     id: 2,
@@ -99,7 +100,7 @@ export const HeroSlider = () => {
                 >
                   <Link 
                     to={slides[currentSlide].link}
-                    className="inline-block bg-primary text-white font-medium px-8 py-3.5 rounded-full hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30"
+                    className="inline-block bg-primary text-white font-bold px-10 py-4 text-lg rounded-full hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30"
                   >
                     {slides[currentSlide].cta}
                   </Link>

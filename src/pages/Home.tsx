@@ -5,8 +5,8 @@ import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
 import { MOCK_DATA } from '../data/mockData';
 
-import dealImage from '../assets/deal-image.png';
-
+import dealImage from '../assets/deal-image-16.png';
+import grandLookImage from '../assets/grand-look.png';
 export const Home = () => {
   const newArrivals = MOCK_DATA.products.filter(p => p.isNew).slice(0, 8);
   const bestSellers = MOCK_DATA.products.filter(p => p.isBestSeller).slice(0, 8);
@@ -135,10 +135,34 @@ export const Home = () => {
             </div>
 
             {/* Right Image */}
-            <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-gradient-to-br from-orange-50/50 to-white flex items-center justify-center p-8">
-               <img src={dealImage} alt="LED Heart Lamp" className="w-full h-full object-contain max-h-[400px]" />
+            <div className="w-full md:w-1/2 h-80 md:h-auto relative bg-gradient-to-br from-orange-50/50 to-white flex items-center justify-center">
+               <img src={dealImage} alt="Deal Image" className="w-full h-full object-cover md:rounded-r-3xl md:rounded-l-none rounded-b-3xl md:rounded-t-none" />
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* Grand Look Section */}
+      <section className="py-16 md:py-24 bg-gray-50 overflow-hidden">
+        <div className="container-custom">
+          <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col md:flex-row items-center">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent z-10 hidden md:block"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10 md:hidden"></div>
+            
+            <img src={grandLookImage} alt="Premium Frames" className="absolute inset-0 w-full h-full object-cover" />
+            
+            <div className="relative z-20 w-full md:w-1/2 p-10 md:p-16 lg:p-24 flex flex-col items-center md:items-start text-center md:text-left min-h-[400px] md:min-h-[500px] justify-end md:justify-center">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 leading-tight">
+                Elegance in Every Detail
+              </h2>
+              <p className="text-lg md:text-xl text-white/90 mb-10 max-w-lg">
+                Discover our premium collection of handcrafted frames designed to give your spaces a grand look.
+              </p>
+              <Link to="/categories" className="inline-block bg-white text-text-main font-bold px-10 py-4 md:px-12 md:py-5 rounded-full hover:bg-primary hover:text-white transition-all shadow-xl text-lg tracking-wide uppercase">
+                Explore Premium
+              </Link>
+            </div>
           </div>
         </div>
       </section>
