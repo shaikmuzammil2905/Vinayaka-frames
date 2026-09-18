@@ -7,14 +7,7 @@ import footerAnim from '../assets/footer-anim.png';
 export const Footer = () => {
   return (
     <footer className="bg-background-alt pt-0 pb-8 mt-auto border-t border-border">
-      {/* Banner Section */}
-      <div className="w-full bg-primary py-6 md:py-10 mb-12 flex justify-center items-center border-b border-primary-hover shadow-inner">
-        <div className="container-custom flex justify-center">
-          <Link to="/category/personalized-gifts" className="block w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl hover:scale-[1.02] transition-transform duration-300">
-            <img src={footerAnim} alt="Special Edition" className="w-full h-auto object-contain" />
-          </Link>
-        </div>
-      </div>
+
 
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
