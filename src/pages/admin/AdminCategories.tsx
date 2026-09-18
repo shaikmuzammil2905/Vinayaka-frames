@@ -107,8 +107,8 @@ export const AdminCategories = () => {
     setUploading(true);
     const file = e.target.files[0];
     try {
-      const url = await uploadImageHelper(file);
-      setForm(prev => ({ ...prev, image_url: url }));
+      const result = await uploadImageHelper(file);
+      setForm(prev => ({ ...prev, image_url: result.url }));
       toast.success('Image uploaded!');
     } catch (err: any) {
       toast.error('Upload failed: ' + (err.message || ''));

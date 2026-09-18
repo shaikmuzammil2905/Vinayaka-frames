@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, ArrowLeft, RefreshCw, Link2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { uploadImageHelper } from '../../lib/imageUtils';
+import { uploadImageHelper, uploadMultipleImagesHelper } from '../../lib/imageUtils';
 
 const FINISH_OPTIONS = ['Glitter', 'Glossy', 'Matte', 'Fiber Glass / Acrylic', 'LED Lighting'];
 
@@ -122,15 +122,38 @@ export const AdminProducts = () => {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
+    if (!e.target.files?.length) return;
     setUploading(true);
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files);
 
     try {
-      const url = await uploadImageHelper(file);
-      setImages(prev => [...prev, { url, public_id: '', is_main: prev.length === 0 }]);
-      toast.success('Image added successfully!');
+      const results = await uploadMultipleImagesHelper(files, (completed, total) => {
+        if (total > 1) {
+          toast.loading(`Uploading image ${completed} of ${total}...`, { id: 'upload-progress' });
+        }
+      });
+
+      toast.dismiss('upload-progress');
+
+      if (results.length > 0) {
+        setImages(prev => {
+          const newImages = results.map(res => ({
+            url: res.url,
+            public_id: res.public_id,
+            is_main: false
+          }));
+
+          const combined = [...prev, ...newImages];
+          if (combined.length > 0 && !combined.some(img => img.is_main)) {
+            combined[0].is_main = true;
+          }
+          return combined;
+        });
+
+        toast.success(`Successfully uploaded ${results.length} image${results.length > 1 ? 's' : ''}!`);
+      }
     } catch (err: any) {
+      toast.dismiss('upload-progress');
       toast.error('Upload failed: ' + (err.message || ''));
     } finally {
       setUploading(false);
@@ -144,11 +167,11 @@ export const AdminProducts = () => {
     const file = e.target.files[0];
 
     try {
-      const newUrl = await uploadImageHelper(file);
-      setImages(prev => prev.map((img, i) => i === index ? { ...img, url: newUrl } : img));
-      toast.success('Image updated!');
+      const res = await uploadImageHelper(file);
+      setImages(prev => prev.map((img, i) => i === index ? { ...img, url: res.url, public_id: res.public_id } : img));
+      toast.success('Image replaced successfully!');
     } catch (err: any) {
-      toast.error('Failed to change image: ' + (err.message || ''));
+      toast.error('Failed to replace image: ' + (err.message || ''));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -157,7 +180,13 @@ export const AdminProducts = () => {
 
   const handleAddImageUrl = () => {
     if (!urlInput.trim()) return;
-    setImages(prev => [...prev, { url: urlInput.trim(), public_id: '', is_main: prev.length === 0 }]);
+    setImages(prev => {
+      const combined = [...prev, { url: urlInput.trim(), public_id: '', is_main: prev.length === 0 }];
+      if (combined.length > 0 && !combined.some(img => img.is_main)) {
+        combined[0].is_main = true;
+      }
+      return combined;
+    });
     setUrlInput('');
     setShowUrlModal(false);
     toast.success('Image URL added!');
@@ -200,8 +229,14 @@ export const AdminProducts = () => {
       // Sync images
       await supabase.from('product_images').delete().eq('product_id', productId!);
       if (images.length > 0) {
+        const sortedImages = [...images].sort((a, b) => (a.is_main === b.is_main ? 0 : a.is_main ? -1 : 1));
         await supabase.from('product_images').insert(
-          images.map(img => ({ product_id: productId!, image_url: img.url, cloudinary_public_id: img.public_id, is_main: img.is_main }))
+          sortedImages.map(img => ({
+            product_id: productId!,
+            image_url: img.url,
+            cloudinary_public_id: img.public_id || '',
+            is_main: img.is_main
+          }))
         );
       }
 
@@ -429,10 +464,16 @@ export const AdminProducts = () => {
                 ) : (
                   <>
                     <Plus className="w-6 h-6 text-gray-400 mb-1" />
-                    <span className="text-[11px] font-medium text-gray-500">Upload Pic</span>
+                    <span className="text-[11px] font-medium text-gray-500">+ Upload Pic</span>
                   </>
                 )}
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
               </label>
             </div>
           </section>
