@@ -15,14 +15,6 @@ const slides = [
     image: heroBg2,
   },
   {
-    id: 2,
-    title: "Your Memories. Your Frame. Your Style.",
-    subtitle: "Choose your size, finish and personalize your special moment.",
-    cta: "Customize Now",
-    link: "/category/personalized-gifts",
-    image: heroImage1,
-  },
-  {
     id: 3,
     title: "Beautiful Frames Made For Every Occasion",
     subtitle: "Birthday • Wedding • Baby • Family • Memories",
