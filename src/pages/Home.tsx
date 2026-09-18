@@ -199,22 +199,10 @@ export const Home = () => {
       )}
 
       {/* Personalized CTA */}
-      <section className="py-16 bg-text-main text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-40">
-          <img src={ctaBg} alt="Background" className="w-full h-full object-cover" />
-        </div>
-        <div className="container-custom relative z-10 text-center">
-          <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Create Your Own Personalized Frame</h2>
-          <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
-            Upload your photo • Choose your size • Select your finish • Make it special
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-10 text-sm font-medium">
-            <span className="bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">✓ Custom Sizes</span>
-            <span className="bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">✓ Multiple Finishes</span>
-            <span className="bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">✓ FREE Gift Packing</span>
-          </div>
-          <Link to="/categories" className="inline-block bg-primary text-white font-medium px-10 py-4 rounded-full hover:bg-primary-hover transition-colors text-lg shadow-lg">
-            Customize Now
+      <section className="py-12 bg-white">
+        <div className="container-custom">
+          <Link to="/category/personalized-gifts" className="block w-full rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+            <img src={ctaBg} alt="Create Your Own Personalized Frame" className="w-full h-auto object-contain" />
           </Link>
         </div>
       </section>

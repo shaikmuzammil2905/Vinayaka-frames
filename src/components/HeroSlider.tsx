@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import heroImage1 from '../assets/hero-slide-1.png';
+import heroBg from '../assets/hero-bg.png';
 
 const slides = [
   {
@@ -18,7 +19,7 @@ const slides = [
     subtitle: "Choose your size, finish and personalize your special moment.",
     cta: "Customize Now",
     link: "/category/personalized-gifts",
-    image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1583847268964-b28ce8f31586?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 3,
@@ -27,6 +28,16 @@ const slides = [
     cta: "Explore Collection",
     link: "/categories",
     image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    textColor: "text-gray-900",
+    gradient: "from-white/80 via-white/50",
+  },
+  {
+    id: 4,
+    title: "Elegance in Every Detail",
+    subtitle: "Discover our premium collection of handcrafted frames designed to give your spaces a grand look.",
+    cta: "Shop Premium",
+    link: "/categories",
+    image: heroBg,
   }
 ];
 
@@ -56,21 +67,21 @@ export const HeroSlider = () => {
             alt={slides[currentSlide].title} 
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+          <div className={`absolute inset-0 bg-gradient-to-r ${slides[currentSlide].gradient || 'from-black/70 via-black/40'} to-transparent`}></div>
           
           <div className="absolute inset-0 flex items-center">
             <div className="container-custom w-full">
-              <div className="max-w-xl text-white">
+              <div className={`max-w-xl ${slides[currentSlide].textColor || 'text-white'}`}>
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                   className="mb-4 flex flex-wrap gap-2"
                 >
-                  <span className="bg-primary/90 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                  <span className={`bg-primary/90 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm shadow-sm`}>
                     🎁 FREE Gift Packing
                   </span>
-                  <span className="bg-white/20 text-white border border-white/30 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                  <span className={`bg-white/20 border border-white/30 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm shadow-sm ${slides[currentSlide].textColor || 'text-white'}`}>
                     🚚 All India Delivery
                   </span>
                 </motion.div>
@@ -79,7 +90,7 @@ export const HeroSlider = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-4 text-white"
+                  className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-4"
                 >
                   {slides[currentSlide].title}
                 </motion.h1>
@@ -88,7 +99,7 @@ export const HeroSlider = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.5 }}
-                  className="text-base md:text-lg text-white/90 mb-8 max-w-lg"
+                  className="text-base md:text-lg opacity-90 mb-8 max-w-lg"
                 >
                   {slides[currentSlide].subtitle}
                 </motion.p>
