@@ -28,7 +28,7 @@ export const BottomNavigation = () => {
               <Link 
                 key={index} 
                 to={item.path}
-                className="flex flex-col items-center justify-center w-16 -mt-6"
+                className="flex flex-col items-center justify-center flex-1 -mt-6"
               >
                 <div className="bg-primary text-white h-14 w-14 rounded-full flex items-center justify-center shadow-lg border-4 border-white mb-1">
                   <Icon className="h-6 w-6" />
@@ -44,7 +44,7 @@ export const BottomNavigation = () => {
             <Link 
               key={index} 
               to={item.path}
-              className={`flex flex-col items-center justify-center w-16 h-full relative ${isActive ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
+              className={`flex flex-col items-center justify-center flex-1 h-full relative ${isActive ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
             >
               <Icon className="h-6 w-6 mb-1" />
               <span className="text-[10px] font-medium">{item.label}</span>
