@@ -24,7 +24,7 @@ function App() {
             <Header />
             <main className="flex-1 bg-gray-50">
               <Routes>
-                <Route path="/" element={<ProductListing />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/deals" element={<ProductListing isDealsPage={true} />} />
                 <Route path="/categories" element={<ProductListing />} />
@@ -36,7 +36,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 {/* Fallback */}
-                <Route path="*" element={<ProductListing />} />
+                <Route path="*" element={<Home />} />
               </Routes>
             </main>
             <Footer />
