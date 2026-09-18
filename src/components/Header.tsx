@@ -103,6 +103,9 @@ export const Header = () => {
             <Link to="/search" className="p-2 text-text-main">
               <Search className="h-6 w-6" />
             </Link>
+            <Link to="/login" className="p-2 text-text-main">
+              <User className="h-6 w-6" />
+            </Link>
             <Link to="/cart" className="p-2 -mr-2 text-text-main relative">
               <ShoppingCart className="h-6 w-6" />
               {cartCount > 0 && (
