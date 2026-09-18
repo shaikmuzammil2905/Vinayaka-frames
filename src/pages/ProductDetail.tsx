@@ -250,62 +250,38 @@ Please confirm availability and order details.`;
               </div>
             )}
 
-            {/* Frame Style Selection Carousel */}
-            <div className="mb-8 w-full overflow-hidden">
+            {/* Frame Style Selection */}
+            <div className="mb-8 w-full">
               <div className="flex items-baseline gap-4 mb-3">
                 <h3 className="text-sm font-medium text-text-main">Select Frame Style</h3>
                 <span className="text-sm font-bold text-primary">{currentThickness}</span>
               </div>
               
-              <div className="relative group">
-                {/* Left Arrow */}
-                <button 
-                  onClick={() => scrollCarousel('left')}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white border border-gray-200 shadow-md rounded-full p-2 z-10 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-primary hover:border-primary"
-                  aria-label="Previous frames"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                </button>
-                
-                {/* Carousel Container */}
-                <div 
-                  ref={carouselRef}
-                  className="flex overflow-x-auto gap-4 pb-4 pt-1 snap-x hide-scrollbar scroll-smooth"
-                >
-                  {activeFrames.map((frame) => (
-                    <div 
-                      key={frame.id}
-                      onClick={() => setSelectedFrameStyle(frame.id)}
-                      className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group/card flex-shrink-0 w-32 md:w-36 snap-start ${
-                        selectedFrameStyle === frame.id ? 'border-primary shadow-md scale-[1.02]' : 'border-gray-200 hover:border-primary/50 hover:scale-[1.02]'
-                      }`}
-                    >
-                      <div className="aspect-square relative">
-                        <img src={frame.img} alt={frame.name} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/10 group-hover/card:bg-black/0 transition-colors"></div>
-                      </div>
-                      
-                      {selectedFrameStyle === frame.id && (
-                        <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-sm z-10">
-                          <Check className="h-3 w-3" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                        <p className="text-white font-medium text-[10px] md:text-xs text-center">{frame.name}</p>
-                      </div>
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                {activeFrames.map((frame) => (
+                  <div 
+                    key={frame.id}
+                    onClick={() => setSelectedFrameStyle(frame.id)}
+                    className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group ${
+                      selectedFrameStyle === frame.id ? 'border-primary shadow-md scale-[1.02]' : 'border-gray-200 hover:border-primary/50 hover:scale-[1.02]'
+                    }`}
+                  >
+                    <div className="aspect-square relative">
+                      <img src={frame.img} alt={frame.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                     </div>
-                  ))}
-                </div>
-                
-                {/* Right Arrow */}
-                <button 
-                  onClick={() => scrollCarousel('right')}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white border border-gray-200 shadow-md rounded-full p-2 z-10 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-primary hover:border-primary"
-                  aria-label="Next frames"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                </button>
+                    
+                    {selectedFrameStyle === frame.id && (
+                      <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-sm z-10">
+                        <Check className="h-3 w-3" />
+                      </div>
+                    )}
+                    
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                      <p className="text-white font-medium text-[10px] md:text-xs text-center">{frame.name}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
