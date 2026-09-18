@@ -2,7 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_DATA, FinishType, SizeOption } from '../data/mockData';
 import { useCart } from '../context/CartContext';
-import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon } from 'lucide-react';
+import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check } from 'lucide-react';
+
+import frame1 from '../assets/20260918_162125.jpg.jpeg';
+import frame2 from '../assets/20260918_162341.jpg.jpeg';
+import frame3 from '../assets/20260918_162454.jpg.jpeg';
+import frame4 from '../assets/20260918_162618.jpg (1).jpeg';
+import frame5 from '../assets/20260918_162701.jpg (1).jpeg';
+import frame6 from '../assets/20260918_163402.jpg.jpeg';
 
 export const ProductDetail = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -11,12 +18,22 @@ export const ProductDetail = () => {
   
   const product = MOCK_DATA.products.find(p => p.id === productId);
   
+  const frames = [
+    { id: 1, img: frame1, name: 'Classic Wood' },
+    { id: 2, img: frame2, name: 'Modern Black' },
+    { id: 3, img: frame3, name: 'Elegant Gold' },
+    { id: 4, img: frame4, name: 'Vintage Ornate' },
+    { id: 5, img: frame5, name: 'Sleek White' },
+    { id: 6, img: frame6, name: 'Premium Texture' },
+  ];
+
   const [selectedSize, setSelectedSize] = useState<SizeOption | undefined>(product?.sizes?.[0]);
   const [selectedFinish, setSelectedFinish] = useState<FinishType | undefined>(product?.finishTypes?.[0]);
   const [quantity, setQuantity] = useState(1);
   
   const [customName, setCustomName] = useState('');
   const [customMessage, setCustomMessage] = useState('');
+  const [selectedFrameStyle, setSelectedFrameStyle] = useState<number | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -155,6 +172,37 @@ export const ProductDetail = () => {
                 </div>
               </div>
             )}
+
+            {/* Frame Style Selection */}
+            <div className="mb-8">
+              <h3 className="text-sm font-medium text-text-main mb-3">Select Frame Style</h3>
+              <div className="grid grid-cols-3 gap-3 md:gap-4">
+                {frames.map((frame) => (
+                  <div 
+                    key={frame.id}
+                    onClick={() => setSelectedFrameStyle(frame.id)}
+                    className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group ${
+                      selectedFrameStyle === frame.id ? 'border-primary shadow-md' : 'border-gray-200 hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="aspect-square relative">
+                      <img src={frame.img} alt={frame.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                    </div>
+                    
+                    {selectedFrameStyle === frame.id && (
+                      <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-sm z-10">
+                        <Check className="h-3 w-3" />
+                      </div>
+                    )}
+                    
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                      <p className="text-white font-medium text-[10px] md:text-xs text-center">{frame.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Personalization */}
             {product.customizable && product.personalization && (
