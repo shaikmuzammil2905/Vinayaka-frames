@@ -136,7 +136,7 @@ export const Home = () => {
 
             {/* Right Image */}
             <div className="w-full md:w-1/2 h-80 md:h-auto relative bg-gradient-to-br from-orange-50/50 to-white flex items-center justify-center">
-               <img src={dealImage} alt="Deal Image" className="w-full h-full object-cover md:rounded-r-3xl md:rounded-l-none rounded-b-3xl md:rounded-t-none" />
+               <img src={dealImage} alt="Deal Image" className="w-full h-full object-cover object-right md:rounded-r-3xl md:rounded-l-none rounded-b-3xl md:rounded-t-none" />
             </div>
 
           </div>
