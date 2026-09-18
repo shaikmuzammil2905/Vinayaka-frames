@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import heroImage1 from '../assets/hero-slide-1.png';
-import heroBg from '../assets/hero-bg.png';
 
 const slides = [
   {
@@ -11,7 +10,7 @@ const slides = [
     subtitle: "Personalized frames, thoughtful gifts and heartfelt moments — all in one place.",
     cta: "Shop Now",
     link: "/categories",
-    image: heroImage1,
+    image: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 2,
@@ -19,7 +18,7 @@ const slides = [
     subtitle: "Choose your size, finish and personalize your special moment.",
     cta: "Customize Now",
     link: "/category/personalized-gifts",
-    image: heroBg,
+    image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 3,
@@ -27,7 +26,7 @@ const slides = [
     subtitle: "Birthday • Wedding • Baby • Family • Memories",
     cta: "Explore Collection",
     link: "/categories",
-    image: heroBg,
+    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
   }
 ];
 
