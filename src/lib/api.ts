@@ -161,6 +161,103 @@ export const api = {
       throw error;
     }
     return data;
+  },
+
+  async placeOrder(orderData: any, items: any[]) {
+    const { data, error } = await supabase.rpc('place_order', {
+      p_customer_name: orderData.customer_name,
+      p_customer_phone: orderData.customer_phone,
+      p_customer_email: orderData.customer_email,
+      p_address: orderData.address,
+      p_city: orderData.city,
+      p_state: orderData.state,
+      p_pincode: orderData.pincode,
+      p_payment_method: orderData.payment_method,
+      p_items: items
+    });
+
+    if (error) {
+      console.error('Error placing order:', error);
+      throw error;
+    }
+
+    return data; // Returns order_id UUID
+  },
+
+  async getOrder(orderId: string) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items(*)
+      `)
+      .eq('id', orderId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching order:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  async getAdminOrders() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching admin orders:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  async updateOrderStatus(orderId: string, status: string) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ order_status: status })
+      .eq('id', orderId);
+
+    if (error) throw error;
+  },
+
+  async updateOrderPaymentStatus(orderId: string, status: string) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ payment_status: status })
+      .eq('id', orderId);
+
+    if (error) throw error;
+  },
+
+  async getDashboardStats() {
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('total_amount, order_status');
+
+    if (error) {
+      console.error('Error fetching stats:', error);
+      return null;
+    }
+
+    const totalOrders = orders.length;
+    const pendingOrders = orders.filter((o: any) => o.order_status === 'Pending').length;
+    const completedOrders = orders.filter((o: any) => o.order_status === 'Delivered').length;
+    const totalRevenue = orders
+      .filter((o: any) => o.order_status !== 'Cancelled')
+      .reduce((sum: number, order: any) => sum + Number(order.total_amount), 0);
+
+    return {
+      totalOrders,
+      pendingOrders,
+      completedOrders,
+      totalRevenue
+    };
   }
 };
 
