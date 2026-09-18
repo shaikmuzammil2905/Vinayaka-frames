@@ -5,6 +5,7 @@ import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
 import { CustomerReviews } from '../components/CustomerReviews';
 import { MOCK_DATA } from '../data/mockData';
+import { api } from '../lib/api';
 
 import dealImage from '../assets/deal-image-9.png';
 import grandLookImage from '../assets/grand-look.png';
@@ -14,9 +15,29 @@ import promoBg from '../assets/promo-bg.png';
 import birthdaySpecialBg from '../assets/birthday-special.png';
 
 export const Home = () => {
-  const newArrivals = MOCK_DATA.products.filter(p => p.isNew).slice(0, 8);
-  const bestSellers = MOCK_DATA.products.filter(p => p.isBestSeller).slice(0, 8);
-  const trending = MOCK_DATA.products.filter(p => p.isTrending).slice(0, 8);
+  const [products, setProducts] = useState(MOCK_DATA.products);
+  const [categories, setCategories] = useState(MOCK_DATA.categories);
+
+  useEffect(() => {
+    let active = true;
+    api.getProducts().then(data => {
+      if (active && data && data.length > 0) {
+        setProducts(data);
+      }
+    }).catch(console.error);
+
+    api.getCategories().then(cats => {
+      if (active && cats && cats.length > 0) {
+        setCategories(cats);
+      }
+    }).catch(console.error);
+
+    return () => { active = false; };
+  }, []);
+
+  const newArrivals = products.filter(p => p.isNew).slice(0, 8);
+  const bestSellers = products.filter(p => p.isBestSeller).slice(0, 8);
+  const trending = products.filter(p => p.isTrending).slice(0, 8);
 
   // Countdown timer logic for Deal of the Day
   const [timeLeft, setTimeLeft] = useState({
@@ -76,7 +97,7 @@ export const Home = () => {
             Shop By Category
           </h2>
           <div ref={categoryScrollRef} className="flex overflow-x-auto gap-4 md:gap-8 pb-4 hide-scrollbar justify-start md:justify-center px-4 md:px-0 -mx-4 md:mx-0">
-            {MOCK_DATA.categories.map(category => (
+            {categories.map(category => (
               <div key={category.id} className="snap-start flex-shrink-0">
                 <CategoryCard category={category} />
               </div>

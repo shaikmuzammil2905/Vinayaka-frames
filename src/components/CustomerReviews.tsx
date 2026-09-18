@@ -1,33 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, Quote } from 'lucide-react';
+import { api } from '../lib/api';
+
+const DEFAULT_REVIEWS = [
+  {
+    id: '1',
+    name: "Priya Sharma",
+    role: "Verified Buyer",
+    content: "The quality of the frames is absolutely stunning. I ordered a personalized collage frame for my anniversary and it exceeded all expectations. The packaging was also very secure.",
+    rating: 5,
+    date: "2 days ago"
+  },
+  {
+    id: '2',
+    name: "Rahul Verma",
+    role: "Verified Buyer",
+    content: "Amazing LED frames! I bought one for my best friend's birthday. The light effect is beautiful and it makes for a perfect night lamp. Highly recommend Vinayak Frames.",
+    rating: 5,
+    date: "1 week ago"
+  },
+  {
+    id: '3',
+    name: "Anjali Desai",
+    role: "Verified Buyer",
+    content: "Very professional service and quick delivery. The finish on the wooden frames gives a very premium look to my living room wall. Will definitely order more.",
+    rating: 5,
+    date: "2 weeks ago"
+  }
+];
 
 export const CustomerReviews = () => {
-  const reviews = [
-    {
-      id: 1,
-      name: "Priya Sharma",
-      role: "Verified Buyer",
-      content: "The quality of the frames is absolutely stunning. I ordered a personalized collage frame for my anniversary and it exceeded all expectations. The packaging was also very secure.",
-      rating: 5,
-      date: "2 days ago"
-    },
-    {
-      id: 2,
-      name: "Rahul Verma",
-      role: "Verified Buyer",
-      content: "Amazing LED frames! I bought one for my best friend's birthday. The light effect is beautiful and it makes for a perfect night lamp. Highly recommend Vinayak Frames.",
-      rating: 5,
-      date: "1 week ago"
-    },
-    {
-      id: 3,
-      name: "Anjali Desai",
-      role: "Verified Buyer",
-      content: "Very professional service and quick delivery. The finish on the wooden frames gives a very premium look to my living room wall. Will definitely order more.",
-      rating: 5,
-      date: "2 weeks ago"
-    }
-  ];
+  const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
+
+  useEffect(() => {
+    let mounted = true;
+    api.getReviews().then(data => {
+      if (mounted && data && data.length > 0) {
+        setReviews(data);
+      }
+    }).catch(err => {
+      console.error('Error fetching reviews:', err);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <section className="py-16 bg-white overflow-hidden relative">

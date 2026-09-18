@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_DATA, FinishType, SizeOption, LED_FRAME_SIZES } from '../data/mockData';
+import { MOCK_DATA, FinishType, SizeOption, LED_FRAME_SIZES, Product } from '../data/mockData';
+import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check } from 'lucide-react';
 
@@ -42,8 +43,20 @@ export const ProductDetail = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   
-  const product = MOCK_DATA.products.find(p => p.id === productId);
-  
+  const mockProduct = MOCK_DATA.products.find(p => p.id === productId);
+  const [product, setProduct] = useState<Product | undefined>(mockProduct);
+
+  useEffect(() => {
+    if (!productId) return;
+    let active = true;
+    api.getProductById(productId).then(data => {
+      if (active && data) {
+        setProduct(data);
+      }
+    }).catch(console.error);
+    return () => { active = false; };
+  }, [productId]);
+
   const [selectedSize, setSelectedSize] = useState<SizeOption | undefined>(product?.sizes?.[0]);
   const [selectedFinish, setSelectedFinish] = useState<FinishType | undefined>(product?.finishTypes?.[0]);
   const [quantity, setQuantity] = useState(1);
