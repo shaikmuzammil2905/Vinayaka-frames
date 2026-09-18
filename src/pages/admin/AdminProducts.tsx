@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, ArrowLeft, RefreshCw, Link2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { uploadImageHelper } from '../../lib/imageUtils';
 
 const FINISH_OPTIONS = ['Glitter', 'Glossy', 'Matte', 'Fiber Glass / Acrylic', 'LED Lighting'];
 
@@ -61,6 +62,8 @@ export const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
+  const [urlInput, setUrlInput] = useState('');
+  const [showUrlModal, setShowUrlModal] = useState(false);
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, []);
 
@@ -122,27 +125,42 @@ export const AdminProducts = () => {
     if (!e.target.files?.[0]) return;
     setUploading(true);
     const file = e.target.files[0];
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', preset);
-    fd.append('folder', 'vinayaka-frames/products');
 
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.secure_url) {
-        setImages(prev => [...prev, { url: data.secure_url, public_id: data.public_id || '', is_main: prev.length === 0 }]);
-        toast.success('Image uploaded!');
-      } else throw new Error(data.error?.message || 'Upload failed');
+      const url = await uploadImageHelper(file);
+      setImages(prev => [...prev, { url, public_id: '', is_main: prev.length === 0 }]);
+      toast.success('Image added successfully!');
     } catch (err: any) {
       toast.error('Upload failed: ' + (err.message || ''));
     } finally {
       setUploading(false);
       e.target.value = '';
     }
+  };
+
+  const handleReplaceImage = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    setUploading(true);
+    const file = e.target.files[0];
+
+    try {
+      const newUrl = await uploadImageHelper(file);
+      setImages(prev => prev.map((img, i) => i === index ? { ...img, url: newUrl } : img));
+      toast.success('Image updated!');
+    } catch (err: any) {
+      toast.error('Failed to change image: ' + (err.message || ''));
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAddImageUrl = () => {
+    if (!urlInput.trim()) return;
+    setImages(prev => [...prev, { url: urlInput.trim(), public_id: '', is_main: prev.length === 0 }]);
+    setUrlInput('');
+    setShowUrlModal(false);
+    toast.success('Image URL added!');
   };
 
   const removeImage = (index: number) => {
@@ -203,7 +221,7 @@ export const AdminProducts = () => {
         );
       }
 
-      toast.success(editingId ? 'Product updated!' : 'Product created!');
+      toast.success(editingId ? 'Product updated! Changes live on website.' : 'Product created! Live on website.');
       setShowForm(false);
       fetchProducts();
     } catch (err: any) {
@@ -306,20 +324,114 @@ export const AdminProducts = () => {
 
           {/* Images */}
           <section className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="font-semibold text-gray-800 mb-4">Images</h2>
-            <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+              <div>
+                <h2 className="font-semibold text-gray-800">Product Pictures</h2>
+                <p className="text-xs text-gray-500">Upload or change product photos. Changes update live on the site.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUrlModal(true)}
+                className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg flex items-center gap-1.5 transition-colors font-medium"
+              >
+                <Link2 className="w-3.5 h-3.5 text-primary" /> + Add via Image URL
+              </button>
+            </div>
+
+            {/* URL Modal / Inline Input */}
+            {showUrlModal && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex flex-col sm:flex-row gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="Paste image URL (e.g. https://...)"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  className="flex-1 w-full px-3 py-1.5 border border-blue-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handleAddImageUrl}
+                    className="flex-1 sm:flex-initial px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary-hover"
+                  >
+                    Add URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlModal(false)}
+                    className="flex-1 sm:flex-initial px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-4 mb-2">
               {images.map((img, i) => (
-                <div key={i} className={`relative w-24 h-24 rounded-xl border-2 overflow-hidden group ${img.is_main ? 'border-primary' : 'border-gray-200'}`}>
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                    <button onClick={() => setMainImage(i)} className="p-1 bg-white rounded text-xs text-primary" title="Set as main">★</button>
-                    <button onClick={() => removeImage(i)} className="p-1 bg-white rounded text-xs text-red-600" title="Remove">✕</button>
+                <div
+                  key={i}
+                  className={`relative w-28 h-28 rounded-2xl border-2 overflow-hidden group shadow-sm bg-gray-50 flex flex-col justify-between ${
+                    img.is_main ? 'border-primary ring-2 ring-primary/20' : 'border-gray-200'
+                  }`}
+                >
+                  <img src={img.url} alt={`Product ${i + 1}`} className="w-full h-full object-cover" />
+                  
+                  {/* Badge */}
+                  {img.is_main && (
+                    <span className="absolute top-1.5 left-1.5 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs z-10">
+                      Main Cover
+                    </span>
+                  )}
+
+                  {/* Hover Overlay Controls */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col justify-between p-2 z-20">
+                    <div className="flex justify-between items-center">
+                      <button
+                        type="button"
+                        onClick={() => setMainImage(i)}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          img.is_main ? 'bg-primary text-white' : 'bg-white/90 text-gray-800 hover:bg-white'
+                        }`}
+                        title="Set as Main Cover"
+                      >
+                        {img.is_main ? '★ Main' : 'Set Main'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="p-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                        title="Remove Image"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Change Pic Button */}
+                    <label className="w-full py-1 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-xs">
+                      <RefreshCw className="w-3 h-3 text-primary" />
+                      <span>Change Pic</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleReplaceImage(i, e)}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
-                  {img.is_main && <span className="absolute top-1 left-1 bg-primary text-white text-[8px] px-1 rounded">Main</span>}
                 </div>
               ))}
-              <label className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                {uploading ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Plus className="w-6 h-6 text-gray-400" />}
+
+              {/* Upload Box */}
+              <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary-light/10 transition-all text-center p-2">
+                {uploading ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                ) : (
+                  <>
+                    <Plus className="w-6 h-6 text-gray-400 mb-1" />
+                    <span className="text-[11px] font-medium text-gray-500">Upload Pic</span>
+                  </>
+                )}
                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
               </label>
             </div>

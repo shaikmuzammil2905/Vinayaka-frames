@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { uploadImageHelper } from '../../lib/imageUtils';
 
 export const AdminCategories = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -69,22 +70,13 @@ export const AdminCategories = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
     const file = e.target.files[0];
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', preset);
-    fd.append('folder', 'vinayaka-frames/categories');
-
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.secure_url) {
-        setForm(prev => ({ ...prev, image_url: data.secure_url }));
-        toast.success('Image uploaded');
-      }
-    } catch { toast.error('Upload failed'); }
+      const url = await uploadImageHelper(file);
+      setForm(prev => ({ ...prev, image_url: url }));
+      toast.success('Image uploaded');
+    } catch {
+      toast.error('Upload failed');
+    }
   };
 
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>;
