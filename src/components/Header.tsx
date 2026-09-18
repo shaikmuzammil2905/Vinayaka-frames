@@ -61,7 +61,7 @@ export const Header = () => {
           </form>
 
           <div className="flex items-center gap-6">
-            <Link to="/contact" className="flex flex-col items-center text-text-muted hover:text-primary transition-colors">
+            <Link to="/login" className="flex flex-col items-center text-text-muted hover:text-primary transition-colors">
               <User className="h-6 w-6" />
               <span className="text-xs mt-1 font-medium">Login</span>
             </Link>
@@ -169,7 +169,7 @@ export const Header = () => {
             
             <div className="p-6 border-t border-gray-100 bg-gray-50">
               <div className="text-sm font-medium text-text-main flex flex-col gap-2">
-                <span className="flex items-center gap-2"><User className="h-4 w-4" /> My Account</span>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 hover:text-primary transition-colors"><User className="h-4 w-4" /> My Account</Link>
                 <span className="flex items-center gap-2 mt-2">📞 9398277441</span>
               </div>
             </div>
