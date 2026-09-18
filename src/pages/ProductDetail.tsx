@@ -11,6 +11,16 @@ import frame4 from '../assets/20260918_162618.jpg (1).jpeg';
 import frame5 from '../assets/20260918_162701.jpg (1).jpeg';
 import frame6 from '../assets/20260918_163402.jpg.jpeg';
 
+import frame1_5_1 from '../assets/frame_1.5_1.jpg';
+import frame1_5_2 from '../assets/frame_1.5_2.jpg';
+import frame1_5_3 from '../assets/frame_1.5_3.jpg';
+import frame1_5_4 from '../assets/frame_1.5_4.jpg';
+
+import trust1 from '../assets/trust_1.jpg';
+import trust2 from '../assets/trust_2.jpg';
+import trust3 from '../assets/trust_3.jpg';
+import trust4 from '../assets/trust_4.jpg';
+
 export const ProductDetail = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
@@ -18,13 +28,20 @@ export const ProductDetail = () => {
   
   const product = MOCK_DATA.products.find(p => p.id === productId);
   
-  const frames = [
+  const frames1Inch = [
     { id: 1, img: frame1, name: 'Classic Wood' },
     { id: 2, img: frame2, name: 'Modern Black' },
     { id: 3, img: frame3, name: 'Elegant Gold' },
     { id: 4, img: frame4, name: 'Vintage Ornate' },
     { id: 5, img: frame5, name: 'Sleek White' },
     { id: 6, img: frame6, name: 'Premium Texture' },
+  ];
+
+  const frames15Inch = [
+    { id: 7, img: frame1_5_1, name: 'Premium Beading' },
+    { id: 8, img: frame1_5_2, name: 'Royal Gold' },
+    { id: 9, img: frame1_5_3, name: 'Classic Brown' },
+    { id: 10, img: frame1_5_4, name: 'Vintage Wood' },
   ];
 
   const [selectedSize, setSelectedSize] = useState<SizeOption | undefined>(product?.sizes?.[0]);
@@ -37,6 +54,18 @@ export const ProductDetail = () => {
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const getFrameThickness = (sizeStr?: string) => {
+    if (!sizeStr) return '1 Inch';
+    const s = sizeStr.replace(/\s/g, '');
+    if (s.includes('16x24') || s.includes('20x30') || s.includes('24x36') || s.includes('16×24') || s.includes('20×30') || s.includes('24×36')) {
+      return '1.5 Inch';
+    }
+    return '1 Inch';
+  };
+
+  const currentThickness = getFrameThickness(selectedSize?.size);
+  const activeFrames = currentThickness === '1.5 Inch' ? frames15Inch : frames1Inch;
+
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
   };
@@ -54,12 +83,19 @@ export const ProductDetail = () => {
     }
   }, [product]);
 
+  useEffect(() => {
+    if (selectedFrameStyle !== null) {
+      if (!activeFrames.find(f => f.id === selectedFrameStyle)) {
+        setSelectedFrameStyle(null);
+      }
+    }
+  }, [selectedSize, activeFrames]);
+
   if (!product) {
     return <div className="container-custom py-20 text-center">Product not found</div>;
   }
 
   const getPriceForSize = (sizeOption: SizeOption, finish?: FinishType) => {
-    // Normalization check since spacing might be slightly different in size strings
     const normalizeSize = (s: string) => s.replace(/\s/g, '');
     if (finish === 'LED Lighting') {
       const ledMatch = LED_FRAME_SIZES.find(s => normalizeSize(s.size) === normalizeSize(sizeOption.size));
@@ -71,6 +107,7 @@ export const ProductDetail = () => {
   const currentPrice = selectedSize ? getPriceForSize(selectedSize, selectedFinish) : product.price;
 
   const handleAddToCart = () => {
+    const activeFrameObj = [...frames1Inch, ...frames15Inch].find(f => f.id === selectedFrameStyle);
     addToCart({
       productId: product.id,
       product,
@@ -81,11 +118,11 @@ export const ProductDetail = () => {
         photoUrl: photoUploaded ? 'uploaded-temp-url' : undefined,
         customName: customName || undefined,
         customMessage: customMessage || undefined,
-        frameStyle: selectedFrameStyle ? frames.find(f => f.id === selectedFrameStyle)?.name : undefined,
+        frameStyle: activeFrameObj ? activeFrameObj.name : undefined,
       },
       itemPrice: currentPrice,
+      // Pass frame thickness if needed by cart
     });
-    // Optional: show a toast or feedback
   };
 
   const handleBuyNow = () => {
@@ -94,11 +131,13 @@ export const ProductDetail = () => {
   };
 
   const handleWhatsApp = () => {
-    const frameName = selectedFrameStyle ? frames.find(f => f.id === selectedFrameStyle)?.name : 'None selected';
+    const activeFrameObj = [...frames1Inch, ...frames15Inch].find(f => f.id === selectedFrameStyle);
+    const frameName = activeFrameObj ? activeFrameObj.name : 'None selected';
     const message = `Hello, I want to enquire/order this product.
 
 Product: ${product.name}
 Size: ${selectedSize?.size || 'N/A'}
+Frame Thickness: ${currentThickness}
 Finish Type: ${selectedFinish || 'N/A'}
 Frame: ${frameName}
 Quantity: ${quantity}
@@ -201,9 +240,12 @@ Please confirm availability and order details.`;
 
             {/* Frame Style Selection */}
             <div className="mb-8">
-              <h3 className="text-sm font-medium text-text-main mb-3">Select Frame Style</h3>
+              <div className="flex items-baseline gap-4 mb-3">
+                <h3 className="text-sm font-medium text-text-main">Select Frame Style</h3>
+                <span className="text-sm font-bold text-primary">{currentThickness}</span>
+              </div>
               <div className="grid grid-cols-3 gap-3 md:gap-4">
-                {frames.map((frame) => (
+                {activeFrames.map((frame) => (
                   <div 
                     key={frame.id}
                     onClick={() => setSelectedFrameStyle(frame.id)}
@@ -326,9 +368,23 @@ Please confirm availability and order details.`;
                 <li className="flex items-center gap-2"><Gift className="h-5 w-5 text-primary" /> Free Gift Wrapping Included</li>
               </ul>
             </div>
+            
+            {/* Trust Before & After */}
+            <div className="border-t border-gray-100 pt-8 mt-8">
+              <h3 className="font-serif font-semibold text-lg mb-4 text-center">Quality You Can Trust</h3>
+              <p className="text-text-muted text-sm mb-6 text-center">See the amazing transformation of our customers' photos. Before & After results.</p>
+              <div className="grid grid-cols-2 gap-4">
+                <img src={trust1} alt="Before & After 1" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
+                <img src={trust2} alt="Before & After 2" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
+                <img src={trust3} alt="Before & After 3" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
+                <img src={trust4} alt="Before & After 4" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
     </div>
   );
 };
+
