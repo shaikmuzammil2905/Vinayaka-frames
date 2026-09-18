@@ -21,6 +21,22 @@ import trust2 from '../assets/trust_2.jpg';
 import trust3 from '../assets/trust_3.jpg';
 import trust4 from '../assets/trust_4.jpg';
 
+const frames1Inch = [
+  { id: 1, img: frame1, name: 'Classic Wood' },
+  { id: 2, img: frame2, name: 'Modern Black' },
+  { id: 3, img: frame3, name: 'Elegant Gold' },
+  { id: 4, img: frame4, name: 'Vintage Ornate' },
+  { id: 5, img: frame5, name: 'Sleek White' },
+  { id: 6, img: frame6, name: 'Premium Texture' },
+];
+
+const frames15Inch = [
+  { id: 7, img: frame1_5_1, name: 'Premium Beading' },
+  { id: 8, img: frame1_5_2, name: 'Royal Gold' },
+  { id: 9, img: frame1_5_3, name: 'Classic Brown' },
+  { id: 10, img: frame1_5_4, name: 'Vintage Wood' },
+];
+
 export const ProductDetail = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
@@ -28,22 +44,6 @@ export const ProductDetail = () => {
   
   const product = MOCK_DATA.products.find(p => p.id === productId);
   
-  const frames1Inch = [
-    { id: 1, img: frame1, name: 'Classic Wood' },
-    { id: 2, img: frame2, name: 'Modern Black' },
-    { id: 3, img: frame3, name: 'Elegant Gold' },
-    { id: 4, img: frame4, name: 'Vintage Ornate' },
-    { id: 5, img: frame5, name: 'Sleek White' },
-    { id: 6, img: frame6, name: 'Premium Texture' },
-  ];
-
-  const frames15Inch = [
-    { id: 7, img: frame1_5_1, name: 'Premium Beading' },
-    { id: 8, img: frame1_5_2, name: 'Royal Gold' },
-    { id: 9, img: frame1_5_3, name: 'Classic Brown' },
-    { id: 10, img: frame1_5_4, name: 'Vintage Wood' },
-  ];
-
   const [selectedSize, setSelectedSize] = useState<SizeOption | undefined>(product?.sizes?.[0]);
   const [selectedFinish, setSelectedFinish] = useState<FinishType | undefined>(product?.finishTypes?.[0]);
   const [quantity, setQuantity] = useState(1);
@@ -53,10 +53,12 @@ export const ProductDetail = () => {
   const [selectedFrameStyle, setSelectedFrameStyle] = useState<number | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   
   const getFrameThickness = (sizeStr?: string) => {
     if (!sizeStr) return '1 Inch';
-    const s = sizeStr.replace(/\s/g, '');
+    // Remove all whitespace characters, non-breaking spaces
+    const s = sizeStr.toLowerCase().replace(/[\s\u00A0]/g, '');
     if (s.includes('16x24') || s.includes('20x30') || s.includes('24x36') || s.includes('16×24') || s.includes('20×30') || s.includes('24×36')) {
       return '1.5 Inch';
     }
@@ -65,6 +67,16 @@ export const ProductDetail = () => {
 
   const currentThickness = getFrameThickness(selectedSize?.size);
   const activeFrames = currentThickness === '1.5 Inch' ? frames15Inch : frames1Inch;
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 250;
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
@@ -83,20 +95,21 @@ export const ProductDetail = () => {
     }
   }, [product]);
 
+  // Reset frame selection if it doesn't match the current thickness category
   useEffect(() => {
     if (selectedFrameStyle !== null) {
       if (!activeFrames.find(f => f.id === selectedFrameStyle)) {
         setSelectedFrameStyle(null);
       }
     }
-  }, [selectedSize, activeFrames]);
+  }, [currentThickness]); // Depends only on thickness changing
 
   if (!product) {
     return <div className="container-custom py-20 text-center">Product not found</div>;
   }
 
   const getPriceForSize = (sizeOption: SizeOption, finish?: FinishType) => {
-    const normalizeSize = (s: string) => s.replace(/\s/g, '');
+    const normalizeSize = (s: string) => s.replace(/[\s\u00A0]/g, '');
     if (finish === 'LED Lighting') {
       const ledMatch = LED_FRAME_SIZES.find(s => normalizeSize(s.size) === normalizeSize(sizeOption.size));
       if (ledMatch) return ledMatch.price;
@@ -121,7 +134,6 @@ export const ProductDetail = () => {
         frameStyle: activeFrameObj ? activeFrameObj.name : undefined,
       },
       itemPrice: currentPrice,
-      // Pass frame thickness if needed by cart
     });
   };
 
@@ -238,37 +250,62 @@ Please confirm availability and order details.`;
               </div>
             )}
 
-            {/* Frame Style Selection */}
-            <div className="mb-8">
+            {/* Frame Style Selection Carousel */}
+            <div className="mb-8 w-full overflow-hidden">
               <div className="flex items-baseline gap-4 mb-3">
                 <h3 className="text-sm font-medium text-text-main">Select Frame Style</h3>
                 <span className="text-sm font-bold text-primary">{currentThickness}</span>
               </div>
-              <div className="grid grid-cols-3 gap-3 md:gap-4">
-                {activeFrames.map((frame) => (
-                  <div 
-                    key={frame.id}
-                    onClick={() => setSelectedFrameStyle(frame.id)}
-                    className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group ${
-                      selectedFrameStyle === frame.id ? 'border-primary shadow-md' : 'border-gray-200 hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="aspect-square relative">
-                      <img src={frame.img} alt={frame.name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
-                    </div>
-                    
-                    {selectedFrameStyle === frame.id && (
-                      <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-sm z-10">
-                        <Check className="h-3 w-3" />
+              
+              <div className="relative group">
+                {/* Left Arrow */}
+                <button 
+                  onClick={() => scrollCarousel('left')}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white border border-gray-200 shadow-md rounded-full p-2 z-10 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-primary hover:border-primary"
+                  aria-label="Previous frames"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                
+                {/* Carousel Container */}
+                <div 
+                  ref={carouselRef}
+                  className="flex overflow-x-auto gap-4 pb-4 pt-1 snap-x hide-scrollbar scroll-smooth"
+                >
+                  {activeFrames.map((frame) => (
+                    <div 
+                      key={frame.id}
+                      onClick={() => setSelectedFrameStyle(frame.id)}
+                      className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group/card flex-shrink-0 w-32 md:w-36 snap-start ${
+                        selectedFrameStyle === frame.id ? 'border-primary shadow-md scale-[1.02]' : 'border-gray-200 hover:border-primary/50 hover:scale-[1.02]'
+                      }`}
+                    >
+                      <div className="aspect-square relative">
+                        <img src={frame.img} alt={frame.name} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/10 group-hover/card:bg-black/0 transition-colors"></div>
                       </div>
-                    )}
-                    
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                      <p className="text-white font-medium text-[10px] md:text-xs text-center">{frame.name}</p>
+                      
+                      {selectedFrameStyle === frame.id && (
+                        <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-sm z-10">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
+                      
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <p className="text-white font-medium text-[10px] md:text-xs text-center">{frame.name}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                
+                {/* Right Arrow */}
+                <button 
+                  onClick={() => scrollCarousel('right')}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white border border-gray-200 shadow-md rounded-full p-2 z-10 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-primary hover:border-primary"
+                  aria-label="Next frames"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
               </div>
             </div>
 
@@ -387,4 +424,3 @@ Please confirm availability and order details.`;
     </div>
   );
 };
-
