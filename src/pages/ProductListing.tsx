@@ -1,6 +1,9 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
+import { HeroSlider } from '../components/HeroSlider';
+import { PricingSection } from '../components/PricingSection';
+import { CustomerReviews } from '../components/CustomerReviews';
 import { MOCK_DATA } from '../data/mockData';
 
 interface ProductListingProps {
@@ -24,8 +27,12 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
     }
   }
 
+  const isMainShop = !categoryId && !isDealsPage;
+
   return (
-    <div className="bg-gray-50 min-h-screen py-8 pb-24">
+    <>
+      {isMainShop && <HeroSlider />}
+      <div className="bg-gray-50 min-h-screen py-8 pb-24">
       <div className="container-custom">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
@@ -71,6 +78,13 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
           </div>
         </div>
       </div>
-    </div>
+      
+      {isMainShop && (
+        <>
+          <PricingSection />
+          <CustomerReviews />
+        </>
+      )}
+    </>
   );
 };
