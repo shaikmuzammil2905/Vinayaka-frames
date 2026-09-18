@@ -176,14 +176,7 @@ export const Home = () => {
         <ProductCarousel title="Trending Gifts" products={trending} />
       )}
 
-      {/* Personalized CTA */}
-      <section className="py-12 bg-white">
-        <div className="container-custom">
-          <Link to="/category/personalized-gifts" className="block w-full rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-            <img src={ctaBg} alt="Create Your Own Personalized Frame" className="w-full h-auto object-contain" />
-          </Link>
-        </div>
-      </section>
+
     </div>
   );
 };
