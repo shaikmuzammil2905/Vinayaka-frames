@@ -38,7 +38,8 @@ export const AdminOrders = () => {
       const data = await api.getAdminOrders();
       setOrders(data || []);
     } catch (e) {
-      toast.error('Failed to load orders');
+      console.warn('Could not load orders:', e);
+      setOrders([]);
     } finally {
       setLoading(false);
     }

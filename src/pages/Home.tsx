@@ -27,7 +27,7 @@ export const Home = () => {
     }).catch(console.error);
 
     api.getCategories().then(cats => {
-      if (active && cats && cats.length > 0) {
+      if (active && cats) {
         setCategories(cats);
       }
     }).catch(console.error);

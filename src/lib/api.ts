@@ -202,19 +202,24 @@ export const api = {
   },
 
   async getAdminOrders() {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items(*)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items(*)
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching admin orders:', error);
-      throw error;
+      if (error) {
+        console.warn('Note: Could not fetch admin orders from Supabase:', error.message);
+        return [];
+      }
+      return data || [];
+    } catch (e: any) {
+      console.warn('getAdminOrders exception:', e?.message || e);
+      return [];
     }
-    return data;
   },
 
   async updateOrderStatus(orderId: string, status: string) {
