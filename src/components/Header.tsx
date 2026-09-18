@@ -100,9 +100,9 @@ export const Header = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsMenuOpen(true)} className="p-2 text-text-main">
+            <Link to="/search" className="p-2 text-text-main">
               <Search className="h-6 w-6" />
-            </button>
+            </Link>
             <Link to="/cart" className="p-2 -mr-2 text-text-main relative">
               <ShoppingCart className="h-6 w-6" />
               {cartCount > 0 && (

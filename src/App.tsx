@@ -6,6 +6,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { BottomNavigation } from './components/BottomNavigation';
 import { Home } from './pages/Home';
+import { SearchPage } from './pages/SearchPage';
 import { ProductListing } from './pages/ProductListing';
 import { ProductDetail } from './pages/ProductDetail';
 import { Cart } from './pages/Cart';
@@ -23,6 +24,7 @@ function App() {
             <main className="flex-1 bg-gray-50">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/search" element={<SearchPage />} />
                 <Route path="/deals" element={<ProductListing isDealsPage={true} />} />
                 <Route path="/categories" element={<ProductListing />} />
                 <Route path="/category/:categoryId" element={<ProductListing />} />
