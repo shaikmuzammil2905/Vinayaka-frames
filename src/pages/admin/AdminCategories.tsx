@@ -140,7 +140,7 @@ export const AdminCategories = () => {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
         {categories.length === 0 ? (
           <p className="text-gray-500 p-8 text-center">No categories found. Create your first category.</p>
         ) : (
