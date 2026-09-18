@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { HeroSlider } from '../components/HeroSlider';
 import { CategoryCard } from '../components/CategoryCard';
@@ -7,6 +7,9 @@ import { MOCK_DATA } from '../data/mockData';
 
 import dealImage from '../assets/deal-image-16.png';
 import grandLookImage from '../assets/grand-look.png';
+import ctaBg from '../assets/cta-bg.png';
+import promoImage from '../assets/promo-image.png';
+
 export const Home = () => {
   const newArrivals = MOCK_DATA.products.filter(p => p.isNew).slice(0, 8);
   const bestSellers = MOCK_DATA.products.filter(p => p.isBestSeller).slice(0, 8);
@@ -35,6 +38,30 @@ export const Home = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-scroll logic for category row
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const scrollContainer = categoryScrollRef.current;
+    if (!scrollContainer) return;
+
+    let scrollAmount = 0;
+    const step = 1;
+    const interval = setInterval(() => {
+      if (scrollContainer) {
+        scrollContainer.scrollLeft += step;
+        scrollAmount += step;
+        
+        // Reset when scrolled past halfway (assuming duplicated content or reaching end)
+        if (scrollContainer.scrollLeft >= (scrollContainer.scrollWidth - scrollContainer.clientWidth)) {
+           scrollContainer.scrollLeft = 0; // jump back to start
+        }
+      }
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="pb-16 md:pb-0">
       <HeroSlider />
@@ -45,7 +72,7 @@ export const Home = () => {
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-center text-text-main mb-10">
             Shop By Category
           </h2>
-          <div className="flex overflow-x-auto gap-4 md:gap-8 pb-4 hide-scrollbar justify-start md:justify-center px-4 md:px-0 -mx-4 md:mx-0 snap-x">
+          <div ref={categoryScrollRef} className="flex overflow-x-auto gap-4 md:gap-8 pb-4 hide-scrollbar justify-start md:justify-center px-4 md:px-0 -mx-4 md:mx-0">
             {MOCK_DATA.categories.map(category => (
               <div key={category.id} className="snap-start flex-shrink-0">
                 <CategoryCard category={category} />
@@ -60,7 +87,7 @@ export const Home = () => {
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link to="/category/birthday-frames" className="group relative rounded-2xl overflow-hidden aspect-[16/9] md:aspect-auto md:h-48 card-shadow">
-              <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Birthday" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img src={promoImage} alt="Birthday" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-black/40"></div>
               <div className="absolute inset-0 p-6 flex flex-col justify-center">
                 <h3 className="text-2xl font-serif font-bold text-white mb-2">Birthday Special</h3>
@@ -173,8 +200,8 @@ export const Home = () => {
 
       {/* Personalized CTA */}
       <section className="py-16 bg-text-main text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Background" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 opacity-40">
+          <img src={ctaBg} alt="Background" className="w-full h-full object-cover" />
         </div>
         <div className="container-custom relative z-10 text-center">
           <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Create Your Own Personalized Frame</h2>
