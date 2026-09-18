@@ -8,7 +8,6 @@ export const BottomNavigation = () => {
   const { cartCount } = useCart();
   
   const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
     { icon: LayoutGrid, label: 'Categories', path: '/categories' },
     { icon: Search, label: 'Search', path: '/search' },
     { icon: Store, label: 'Shop', path: '/', isPrimary: true },

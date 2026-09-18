@@ -5,7 +5,6 @@ import { WishlistProvider } from './context/WishlistContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { BottomNavigation } from './components/BottomNavigation';
-import { Home } from './pages/Home';
 import { SearchPage } from './pages/SearchPage';
 import { ProductListing } from './pages/ProductListing';
 import { ProductDetail } from './pages/ProductDetail';
@@ -24,7 +23,7 @@ function App() {
             <Header />
             <main className="flex-1 bg-gray-50">
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<ProductListing />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/deals" element={<ProductListing isDealsPage={true} />} />
                 <Route path="/categories" element={<ProductListing />} />
@@ -36,7 +35,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 {/* Fallback */}
-                <Route path="*" element={<Home />} />
+                <Route path="*" element={<ProductListing />} />
               </Routes>
             </main>
             <Footer />

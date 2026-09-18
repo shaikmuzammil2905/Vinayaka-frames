@@ -8,6 +8,32 @@ export const Contact = () => {
       <div className="container-custom">
         <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-main mb-8">Contact Us</h1>
         
+        {/* Founder Section */}
+        <div className="mb-16 bg-white rounded-3xl card-shadow border border-gray-100 overflow-hidden">
+          <div className="flex flex-col md:flex-row">
+            <div className="w-full md:w-2/5 h-[400px] md:h-auto relative">
+              <img src={founderImage} alt="K. Anil Nayak - Founder" className="w-full h-full object-cover object-top" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 p-8">
+                <h3 className="text-3xl font-serif font-bold text-white mb-1">K. Anil Nayak</h3>
+                <p className="text-white/80 font-medium">Founder & Visionary</p>
+              </div>
+            </div>
+            <div className="w-full md:w-3/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
+              <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-6">
+                <Award className="h-6 w-6" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-text-main mb-6">Crafting Memories Since Inception</h2>
+              <p className="text-text-muted text-lg leading-relaxed mb-6">
+                "Our vision at Vinayak Frames is not just to sell frames, but to preserve the beautiful moments of our customers' lives. We believe every picture tells a story, and a grand frame is the perfect storyteller."
+              </p>
+              <div className="text-text-main font-semibold italic text-xl">
+                - K. Anil Nayak
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-1/3 space-y-6">
             <div className="bg-white rounded-2xl card-shadow p-6 border border-gray-100">
@@ -112,32 +138,6 @@ export const Contact = () => {
                 title="Vinayak Frames Location Map"
               ></iframe>
             </a>
-          </div>
-        </div>
-
-        {/* Founder Section */}
-        <div className="mt-16 bg-white rounded-3xl card-shadow border border-gray-100 overflow-hidden">
-          <div className="flex flex-col md:flex-row">
-            <div className="w-full md:w-2/5 h-[400px] md:h-auto relative">
-              <img src={founderImage} alt="K. Anil Nayak - Founder" className="w-full h-full object-cover object-top" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-              <div className="absolute bottom-0 left-0 p-8">
-                <h3 className="text-3xl font-serif font-bold text-white mb-1">K. Anil Nayak</h3>
-                <p className="text-white/80 font-medium">Founder & Visionary</p>
-              </div>
-            </div>
-            <div className="w-full md:w-3/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
-              <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-6">
-                <Award className="h-6 w-6" />
-              </div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-text-main mb-6">Crafting Memories Since Inception</h2>
-              <p className="text-text-muted text-lg leading-relaxed mb-6">
-                "Our vision at Vinayak Frames is not just to sell frames, but to preserve the beautiful moments of our customers' lives. We believe every picture tells a story, and a grand frame is the perfect storyteller."
-              </p>
-              <div className="text-text-main font-semibold italic text-xl">
-                - K. Anil Nayak
-              </div>
-            </div>
           </div>
         </div>
       </div>

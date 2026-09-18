@@ -122,7 +122,6 @@ export const Header = () => {
       <nav className="hidden md:block border-t border-gray-100">
         <div className="container-custom">
           <ul className="flex items-center justify-center gap-6 py-3 text-sm font-medium">
-            <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
             <li><Link to="/category/god-frames" className="hover:text-primary transition-colors">God Frames</Link></li>
             <li><Link to="/category/no-edit-frames" className="hover:text-primary transition-colors">No-Edit Frames</Link></li>
             <li><Link to="/category/birthday-frames" className="hover:text-primary transition-colors">Birthday Frames</Link></li>
@@ -160,7 +159,6 @@ export const Header = () => {
 
             <nav className="flex-1 overflow-y-auto py-4">
               <ul className="flex flex-col text-base font-medium">
-                <li><Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-6 py-3 hover:bg-gray-50 hover:text-primary text-text-main">Home</Link></li>
                 <li><Link to="/category/god-frames" onClick={() => setIsMenuOpen(false)} className="block px-6 py-3 hover:bg-gray-50 hover:text-primary text-text-main">God Frames</Link></li>
                 <li><Link to="/category/no-edit-frames" onClick={() => setIsMenuOpen(false)} className="block px-6 py-3 hover:bg-gray-50 hover:text-primary text-text-main">No-Edit Frames</Link></li>
                 <li><Link to="/category/birthday-frames" onClick={() => setIsMenuOpen(false)} className="block px-6 py-3 hover:bg-gray-50 hover:text-primary text-text-main">Birthday Frames</Link></li>
