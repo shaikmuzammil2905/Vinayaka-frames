@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Instagram, Facebook } from 'lucide-react';
+import { MapPin, Phone, Mail, Instagram } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 import footerAnim from '../assets/footer-anim.png';
 
@@ -72,11 +72,8 @@ export const Footer = () => {
               </li>
             </ul>
             <div className="flex items-center gap-4 mt-6">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-white p-2.5 rounded-full shadow-sm hover:text-primary hover:shadow-md transition-all text-text-muted">
+              <a href="https://www.instagram.com/vinayak_photo_gallery?stkn=NjhjZnQyempudTgx" target="_blank" rel="noopener noreferrer" className="bg-white p-2.5 rounded-full shadow-sm hover:text-primary hover:shadow-md transition-all text-text-muted">
                 <Instagram className="h-5 w-5" />
-              </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-white p-2.5 rounded-full shadow-sm hover:text-primary hover:shadow-md transition-all text-text-muted">
-                <Facebook className="h-5 w-5" />
               </a>
             </div>
           </div>

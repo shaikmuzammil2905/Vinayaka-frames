@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Award } from 'lucide-react';
+import founderImage from '../assets/Founder Profile Photo 1.jpg (1).jpeg';
 
 export const Contact = () => {
   return (
@@ -88,17 +89,54 @@ export const Contact = () => {
               </form>
             </div>
             
-            <div className="bg-gray-200 rounded-2xl overflow-hidden aspect-video relative flex items-center justify-center">
+            <a 
+              href="https://maps.app.goo.gl/R2hqPCtNx3JH5hGq5?g_st=ac" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-gray-200 rounded-2xl overflow-hidden aspect-video relative flex items-center justify-center block cursor-pointer group"
+            >
+              <div className="absolute inset-0 z-10 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div className="bg-white text-primary font-bold px-6 py-3 rounded-full shadow-lg transform group-hover:scale-105 transition-transform flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Open in Google Maps
+                </div>
+              </div>
               <iframe 
                 src="https://maps.google.com/maps?q=Vinayak%20Frames%2C%20Beside%20Saifullah%20Flyover%20Bridge%2C%20Near%20Vishal%20Mart%2C%20Ramachandra%20Nagar%2C%20Anantapur&t=&z=16&ie=UTF8&iwloc=&output=embed" 
                 width="100%" 
                 height="100%" 
-                style={{ border: 0, position: 'absolute', inset: 0 }} 
+                style={{ border: 0, position: 'absolute', inset: 0, pointerEvents: 'none' }} 
                 allowFullScreen 
                 loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Vinayak Frames Location Map"
               ></iframe>
+            </a>
+          </div>
+        </div>
+
+        {/* Founder Section */}
+        <div className="mt-16 bg-white rounded-3xl card-shadow border border-gray-100 overflow-hidden">
+          <div className="flex flex-col md:flex-row">
+            <div className="w-full md:w-2/5 h-[400px] md:h-auto relative">
+              <img src={founderImage} alt="K. Anil Nayak - Founder" className="w-full h-full object-cover object-top" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 p-8">
+                <h3 className="text-3xl font-serif font-bold text-white mb-1">K. Anil Nayak</h3>
+                <p className="text-white/80 font-medium">Founder & Visionary</p>
+              </div>
+            </div>
+            <div className="w-full md:w-3/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
+              <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-6">
+                <Award className="h-6 w-6" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-text-main mb-6">Crafting Memories Since Inception</h2>
+              <p className="text-text-muted text-lg leading-relaxed mb-6">
+                "Our vision at Vinayak Frames is not just to sell frames, but to preserve the beautiful moments of our customers' lives. We believe every picture tells a story, and a grand frame is the perfect storyteller."
+              </p>
+              <div className="text-text-main font-semibold italic text-xl">
+                - K. Anil Nayak
+              </div>
             </div>
           </div>
         </div>

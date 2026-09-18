@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { HeroSlider } from '../components/HeroSlider';
 import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
+import { PricingSection } from '../components/PricingSection';
+import { CustomerReviews } from '../components/CustomerReviews';
 import { MOCK_DATA } from '../data/mockData';
 
 import dealImage from '../assets/deal-image-9.png';
@@ -178,6 +180,9 @@ export const Home = () => {
         <ProductCarousel title="Trending Gifts" products={trending} />
       )}
 
+      <PricingSection />
+      
+      <CustomerReviews />
 
     </div>
   );
