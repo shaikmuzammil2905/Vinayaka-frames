@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import heroImage1 from '../assets/hero-slide-1.png';
 import heroBg from '../assets/hero-bg.png';
+import heroBg2 from '../assets/hero-bg-2.png';
 
 const slides = [
   {
@@ -11,7 +12,7 @@ const slides = [
     subtitle: "Personalized frames, thoughtful gifts and heartfelt moments — all in one place.",
     cta: "Shop Now",
     link: "/categories",
-    image: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    image: heroBg2,
   },
   {
     id: 2,

@@ -6,13 +6,17 @@ import { useWishlist } from '../context/WishlistContext';
 import logo from '../assets/logo.jpg';
 
 const TopAnnouncement = () => (
-  <div className="bg-primary text-primary-light text-sm font-medium py-2 overflow-hidden whitespace-nowrap">
-    <div className="animate-marquee inline-block">
-      <span className="mx-4">🎁 FREE Gift Packing on Every Order</span>
-      <span className="mx-4">🚚 All Over India Delivery Available</span>
-      <span className="mx-4">✨ Custom Frames Available</span>
-      <span className="mx-4">🛍️ Retail & Wholesale Orders Welcome</span>
-      <span className="mx-4">📞 Call / WhatsApp: 9398277441</span>
+  <div className="bg-primary text-primary-light text-sm font-medium py-2 overflow-hidden flex whitespace-nowrap w-full">
+    <div className="animate-marquee flex whitespace-nowrap min-w-max">
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="flex whitespace-nowrap">
+          <span className="mx-4">🎁 FREE Gift Packing on Every Order</span>
+          <span className="mx-4">🚚 All Over India Delivery Available</span>
+          <span className="mx-4">✨ Custom Frames Available</span>
+          <span className="mx-4">🛍️ Retail & Wholesale Orders Welcome</span>
+          <span className="mx-4">📞 Call / WhatsApp: 9398277441</span>
+        </div>
+      ))}
     </div>
   </div>
 );
