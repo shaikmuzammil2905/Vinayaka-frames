@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import { MapPin, Phone, Mail, Instagram, Facebook } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 import footerAnim from '../assets/footer-anim.png';
 
@@ -34,11 +34,11 @@ export const Footer = () => {
           <div>
             <h3 className="text-lg font-serif font-semibold mb-6">Quick Links</h3>
             <ul className="space-y-3 text-sm text-text-muted">
-              <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
-              <li><Link to="/categories" className="hover:text-primary transition-colors">Shop All</Link></li>
-              <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
-              <li><Link to="/track-order" className="hover:text-primary transition-colors">Track Order</Link></li>
+              <li><Link to="/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Home</Link></li>
+              <li><Link to="/categories" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Shop All</Link></li>
+              <li><Link to="/about" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/contact" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Contact</Link></li>
+              <li><Link to="/track-order" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Track Order</Link></li>
             </ul>
           </div>
 
@@ -46,11 +46,11 @@ export const Footer = () => {
           <div>
             <h3 className="text-lg font-serif font-semibold mb-6">Categories</h3>
             <ul className="space-y-3 text-sm text-text-muted">
-              <li><Link to="/category/birthday-frames" className="hover:text-primary transition-colors">Birthday Frames</Link></li>
-              <li><Link to="/category/wedding-frames" className="hover:text-primary transition-colors">Wedding Frames</Link></li>
-              <li><Link to="/category/baby-frames" className="hover:text-primary transition-colors">Baby Frames</Link></li>
-              <li><Link to="/category/collage-frames" className="hover:text-primary transition-colors">Collage Frames</Link></li>
-              <li><Link to="/category/personalized-gifts" className="hover:text-primary transition-colors">Personalized Gifts</Link></li>
+              <li><Link to="/category/birthday-frames" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Birthday Frames</Link></li>
+              <li><Link to="/category/wedding-frames" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Wedding Frames</Link></li>
+              <li><Link to="/category/baby-frames" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Baby Frames</Link></li>
+              <li><Link to="/category/collage-frames" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Collage Frames</Link></li>
+              <li><Link to="/category/personalized-gifts" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Personalized Gifts</Link></li>
             </ul>
           </div>
 
@@ -72,8 +72,12 @@ export const Footer = () => {
               </li>
             </ul>
             <div className="flex items-center gap-4 mt-6">
-              <a href="#" className="bg-white px-3 py-1.5 rounded-md shadow-sm hover:text-primary transition-colors text-sm font-medium">IG</a>
-              <a href="#" className="bg-white px-3 py-1.5 rounded-md shadow-sm hover:text-primary transition-colors text-sm font-medium">FB</a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-white p-2.5 rounded-full shadow-sm hover:text-primary hover:shadow-md transition-all text-text-muted">
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-white p-2.5 rounded-full shadow-sm hover:text-primary hover:shadow-md transition-all text-text-muted">
+                <Facebook className="h-5 w-5" />
+              </a>
             </div>
           </div>
 
