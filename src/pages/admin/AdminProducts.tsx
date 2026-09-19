@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, ArrowLeft, RefreshCw, Link2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadImageHelper, uploadMultipleImagesHelper } from '../../lib/imageUtils';
+import { getUniqueSlug, slugify } from '../../lib/slugUtils';
 
 const FINISH_OPTIONS = ['Glitter', 'Glossy', 'Matte', 'Fiber Glass / Acrylic', 'LED Lighting'];
 
@@ -207,22 +208,36 @@ export const AdminProducts = () => {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error('Product name is required'); return; }
+    const trimmedName = form.name.trim();
+    if (!trimmedName) { toast.error('Product name is required'); return; }
     if (images.length === 0) { toast.error('At least one image is required'); return; }
     setSaving(true);
 
     try {
-      const slug = form.slug || generateSlug(form.name);
-      const productPayload = { ...form, slug };
+      const chosenSlug = form.slug.trim() || trimmedName;
+      const finalSlug = await getUniqueSlug('products', chosenSlug, editingId);
+      const productPayload = { ...form, name: trimmedName, slug: finalSlug };
 
       let productId = editingId;
 
       if (editingId) {
-        const { error } = await supabase.from('products').update(productPayload).eq('id', editingId);
+        let { error } = await supabase.from('products').update(productPayload).eq('id', editingId);
+        if (error && (error.code === '23505' || error.message?.includes('products_slug_key') || error.message?.includes('duplicate key'))) {
+          productPayload.slug = `${slugify(chosenSlug)}-${Date.now().toString(36).slice(-4)}`;
+          const retry = await supabase.from('products').update(productPayload).eq('id', editingId);
+          error = retry.error;
+        }
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from('products').insert(productPayload).select('id').single();
+        let { data, error } = await supabase.from('products').insert(productPayload).select('id').single();
+        if (error && (error.code === '23505' || error.message?.includes('products_slug_key') || error.message?.includes('duplicate key'))) {
+          productPayload.slug = `${slugify(chosenSlug)}-${Date.now().toString(36).slice(-4)}`;
+          const retry = await supabase.from('products').insert(productPayload).select('id').single();
+          data = retry.data;
+          error = retry.error;
+        }
         if (error) throw error;
+        if (!data) throw new Error('Failed to create product record');
         productId = data.id;
       }
 
@@ -310,13 +325,31 @@ export const AdminProducts = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product Name*</label>
-                  <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value, slug: generateSlug(e.target.value) }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <input 
+                    value={form.name} 
+                    onChange={e => {
+                      const newName = e.target.value;
+                      setForm(p => ({ 
+                        ...p, 
+                        name: newName, 
+                        slug: p.slug && p.slug !== slugify(p.name) ? p.slug : slugify(newName) 
+                      }));
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                    placeholder="e.g. Premium God Frame"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                  <input value={form.slug} onChange={e => setForm(p => ({ ...p, slug: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-gray-500" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Slug (URL Path)</label>
+                  <input 
+                    value={form.slug} 
+                    onChange={e => setForm(p => ({ ...p, slug: slugify(e.target.value) }))}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-gray-700" 
+                    placeholder="e.g. premium-god-frame"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Unique product URL. If duplicate, a number will be added automatically.
+                  </p>
                 </div>
               </div>
               <div>

@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, RefreshCw, Link2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadImageHelper } from '../../lib/imageUtils';
+import { getUniqueSlug, slugify } from '../../lib/slugUtils';
 
 export const AdminCategories = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -27,24 +28,6 @@ export const AdminCategories = () => {
     setLoading(false);
   };
 
-  const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-  const generateUniqueSlug = (name: string, currentId: string | null) => {
-    let baseSlug = generateSlug(name);
-    if (!baseSlug) baseSlug = 'category';
-    
-    // Check if baseSlug already exists in categories list
-    const exists = categories.some(c => c.slug === baseSlug && c.id !== currentId);
-    if (!exists) return baseSlug;
-
-    // Append counter
-    let counter = 2;
-    while (categories.some(c => c.slug === `${baseSlug}-${counter}` && c.id !== currentId)) {
-      counter++;
-    }
-    return `${baseSlug}-${counter}`;
-  };
-
   const openCreate = () => {
     setEditingId(null);
     setForm({ name: '', slug: '', image_url: '', active: true });
@@ -62,34 +45,47 @@ export const AdminCategories = () => {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+    const trimmedName = form.name.trim();
+    if (!trimmedName) { toast.error('Category name is required'); return; }
     setSaving(true);
 
-    let finalSlug = form.slug ? generateSlug(form.slug) : generateUniqueSlug(form.name, editingId);
-    
-    // Check if customized slug collides
-    const collision = categories.some(c => c.slug === finalSlug && c.id !== editingId);
-    if (collision) {
-      finalSlug = `${finalSlug}-${Date.now().toString().slice(-4)}`;
-    }
-
-    const payload = { name: form.name, slug: finalSlug, image_url: form.image_url || null, active: form.active };
-
     try {
-      if (editingId) {
-        const { error } = await supabase.from('categories').update(payload).eq('id', editingId);
-        if (error) throw error;
-        toast.success('Category updated! Changes live on website.');
-      } else {
-        const { error } = await supabase.from('categories').insert(payload);
-        if (error) throw error;
-        toast.success('Category created! Changes live on website.');
+      // Resolve a guaranteed unique slug against the database
+      const chosenSlug = form.slug.trim() || trimmedName;
+      const finalSlug = await getUniqueSlug('categories', chosenSlug, editingId);
+
+      const payload = {
+        name: trimmedName,
+        slug: finalSlug,
+        image_url: form.image_url || null,
+        active: form.active
+      };
+
+      let result = editingId
+        ? await supabase.from('categories').update(payload).eq('id', editingId)
+        : await supabase.from('categories').insert(payload);
+
+      // Auto-retry with timestamp suffix if unique constraint was somehow hit concurrently
+      if (result.error && (result.error.code === '23505' || result.error.message?.includes('categories_slug_key') || result.error.message?.includes('duplicate key'))) {
+        const uniqueFallbackSlug = `${slugify(chosenSlug)}-${Date.now().toString(36).slice(-4)}`;
+        payload.slug = uniqueFallbackSlug;
+        result = editingId
+          ? await supabase.from('categories').update(payload).eq('id', editingId)
+          : await supabase.from('categories').insert(payload);
       }
 
+      if (result.error) {
+        if (result.error.code === '23505' || result.error.message?.includes('categories_slug_key')) {
+          throw new Error('A category with this URL path already exists. Please choose a different name or slug.');
+        }
+        throw result.error;
+      }
+
+      toast.success(editingId ? 'Category updated! Changes live on website.' : 'Category created! Changes live on website.');
       setShowForm(false);
       fetchCategories();
     } catch (err: any) {
-      toast.error('Error saving category: ' + (err.message || ''));
+      toast.error(err.message || 'Error saving category');
     } finally {
       setSaving(false);
     }
@@ -149,13 +145,31 @@ export const AdminCategories = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category Name*</label>
-                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value, slug: generateUniqueSlug(e.target.value, editingId) }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Wedding Frames" />
+                <input 
+                  value={form.name} 
+                  onChange={e => {
+                    const newName = e.target.value;
+                    setForm(p => ({ 
+                      ...p, 
+                      name: newName, 
+                      slug: p.slug && p.slug !== slugify(p.name) ? p.slug : slugify(newName) 
+                    }));
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                  placeholder="e.g. Wedding Frames" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Slug (URL Path)</label>
-                <input value={form.slug} onChange={e => setForm(p => ({ ...p, slug: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-gray-500" />
+                <input 
+                  value={form.slug} 
+                  onChange={e => setForm(p => ({ ...p, slug: slugify(e.target.value) }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-gray-700" 
+                  placeholder="e.g. wedding-frames"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Unique link identifier for category URL. If duplicate, a number (-2, -3) will be appended automatically.
+                </p>
               </div>
               
               <div>
