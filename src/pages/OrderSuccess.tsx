@@ -3,6 +3,30 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { CheckCircle, Package, Loader2, Home, ArrowRight } from 'lucide-react';
 
+const paymentMethodLabel = (method: string) => {
+  const map: Record<string, string> = {
+    COD: 'Cash on Delivery',
+    UPI: 'UPI Payment',
+    Card: 'Credit / Debit Card',
+  };
+  return map[method] || method;
+};
+
+const statusBadge = (status: string, type: 'order' | 'payment') => {
+  const colors: Record<string, string> = {
+    Pending: type === 'payment' ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800',
+    Confirmed: 'bg-blue-100 text-blue-800',
+    Processing: 'bg-indigo-100 text-indigo-800',
+    Shipped: 'bg-purple-100 text-purple-800',
+    Delivered: 'bg-green-100 text-green-800',
+    Cancelled: 'bg-red-100 text-red-800',
+    Paid: 'bg-green-100 text-green-800',
+    Failed: 'bg-red-100 text-red-800',
+    Refunded: 'bg-gray-100 text-gray-800',
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
 export const OrderSuccess = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<any>(null);
@@ -44,7 +68,7 @@ export const OrderSuccess = () => {
       <div className="container-custom max-w-2xl">
         {/* Success Header */}
         <div className="bg-white rounded-2xl card-shadow p-8 border border-gray-100 text-center mb-8">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-[scale-in_0.3s_ease-out]">
             <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
           <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-main mb-2">
@@ -115,17 +139,17 @@ export const OrderSuccess = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-sm font-medium text-text-muted mb-1">Order Status</h3>
-              <span className="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusBadge(order.order_status, 'order')}`}>
                 {order.order_status}
               </span>
             </div>
             <div>
               <h3 className="text-sm font-medium text-text-muted mb-1">Payment Method</h3>
-              <p className="font-medium text-text-main">{order.payment_method}</p>
+              <p className="font-medium text-text-main">{paymentMethodLabel(order.payment_method)}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-text-muted mb-1">Payment Status</h3>
-              <span className="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusBadge(order.payment_status, 'payment')}`}>
                 {order.payment_status}
               </span>
             </div>
@@ -148,6 +172,12 @@ export const OrderSuccess = () => {
               <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
               You will receive a WhatsApp / call confirmation on <strong>{order.customer_phone}</strong>.
             </li>
+            {order.payment_method === 'COD' && (
+              <li className="flex items-start gap-2">
+                <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <strong>Cash on Delivery:</strong> Please keep ₹{Number(order.total_amount).toLocaleString('en-IN')} ready at the time of delivery.
+              </li>
+            )}
             <li className="flex items-start gap-2">
               <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
               For any queries, contact us on WhatsApp or email.

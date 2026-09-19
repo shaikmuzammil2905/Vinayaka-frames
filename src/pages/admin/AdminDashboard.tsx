@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
-import { Package, Tag, Star, Eye, TrendingUp, Clock, Loader2, ShoppingCart, IndianRupee, CheckCircle, AlertCircle } from 'lucide-react';
+import { Package, Tag, Star, Eye, TrendingUp, Clock, Loader2, ShoppingCart, IndianRupee, CheckCircle, AlertCircle, XCircle, Banknote, Settings } from 'lucide-react';
 
 export const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -17,7 +17,10 @@ export const AdminDashboard = () => {
   const [orderStats, setOrderStats] = useState({
     totalOrders: 0,
     pendingOrders: 0,
+    processingOrders: 0,
     completedOrders: 0,
+    cancelledOrders: 0,
+    pendingPayments: 0,
     totalRevenue: 0,
   });
   const [recentProducts, setRecentProducts] = useState<any[]>([]);
@@ -110,7 +113,10 @@ export const AdminDashboard = () => {
   const orderCards = [
     { label: 'Total Orders', value: orderStats.totalOrders, icon: ShoppingCart, color: 'bg-indigo-50 text-indigo-600' },
     { label: 'Pending Orders', value: orderStats.pendingOrders, icon: AlertCircle, color: 'bg-yellow-50 text-yellow-600' },
+    { label: 'Processing', value: orderStats.processingOrders, icon: Settings, color: 'bg-blue-50 text-blue-600' },
     { label: 'Delivered', value: orderStats.completedOrders, icon: CheckCircle, color: 'bg-green-50 text-green-600' },
+    { label: 'Cancelled', value: orderStats.cancelledOrders, icon: XCircle, color: 'bg-red-50 text-red-600' },
+    { label: 'Pending Payments', value: orderStats.pendingPayments, icon: Banknote, color: 'bg-orange-50 text-orange-600' },
     { label: 'Total Revenue', value: `₹${orderStats.totalRevenue.toLocaleString('en-IN')}`, icon: IndianRupee, color: 'bg-emerald-50 text-emerald-600' },
   ];
 

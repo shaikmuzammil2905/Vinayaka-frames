@@ -177,22 +177,26 @@ export const api = {
     });
 
     if (error) {
-      console.error('Error placing order:', error);
-      throw error;
+      console.error('Supabase placeOrder error:', error.message, error.details, error.hint, error.code);
+      // Map to user-friendly error messages
+      const msg = error.message || '';
+      if (msg.includes('invalid or inactive')) {
+        throw new Error('One of the products in your cart is no longer available. Please refresh your cart.');
+      } else if (msg.includes('permission') || error.code === '42501') {
+        throw new Error('Unable to place your order right now. Please try again later.');
+      } else if (msg.includes('violates') || msg.includes('constraint')) {
+        throw new Error('There was an issue with your order details. Please check and try again.');
+      }
+      throw new Error('Unable to place your order right now. Please try again.');
     }
 
     return data; // Returns order_id UUID
   },
 
   async getOrder(orderId: string) {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items(*)
-      `)
-      .eq('id', orderId)
-      .single();
+    const { data, error } = await supabase.rpc('get_order_by_id', {
+      p_order_id: orderId
+    });
 
     if (error) {
       console.error('Error fetching order:', error);
@@ -243,7 +247,7 @@ export const api = {
   async getDashboardStats() {
     const { data: orders, error } = await supabase
       .from('orders')
-      .select('total_amount, order_status');
+      .select('total_amount, order_status, payment_status');
 
     if (error) {
       console.error('Error fetching stats:', error);
@@ -252,7 +256,10 @@ export const api = {
 
     const totalOrders = orders.length;
     const pendingOrders = orders.filter((o: any) => o.order_status === 'Pending').length;
+    const processingOrders = orders.filter((o: any) => o.order_status === 'Processing').length;
     const completedOrders = orders.filter((o: any) => o.order_status === 'Delivered').length;
+    const cancelledOrders = orders.filter((o: any) => o.order_status === 'Cancelled').length;
+    const pendingPayments = orders.filter((o: any) => o.payment_status === 'Pending').length;
     const totalRevenue = orders
       .filter((o: any) => o.order_status !== 'Cancelled')
       .reduce((sum: number, order: any) => sum + Number(order.total_amount), 0);
@@ -260,7 +267,10 @@ export const api = {
     return {
       totalOrders,
       pendingOrders,
+      processingOrders,
       completedOrders,
+      cancelledOrders,
+      pendingPayments,
       totalRevenue
     };
   }
