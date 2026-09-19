@@ -31,8 +31,30 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>(() => {
-    const savedCart = localStorage.getItem('vf_cart');
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedCart = localStorage.getItem('vf_cart');
+      if (!savedCart) return [];
+      const parsed: CartItem[] = JSON.parse(savedCart);
+      const LEGACY_MAP: Record<string, string> = {
+        p1: '5c06c350-f02d-4b01-a6eb-ea65cc87e278',
+        p2: '1c4788a4-b8d0-422c-a5e8-6d64ea4f0492',
+        p3: '25f39418-8148-49f9-9b49-f12bea38266d',
+        p4: '907a5662-ef0a-4541-ae11-d8696cbd246f',
+      };
+      return parsed.map(item => {
+        const mappedId = LEGACY_MAP[item.productId];
+        if (mappedId) {
+          return {
+            ...item,
+            productId: mappedId,
+            product: { ...item.product, id: mappedId }
+          };
+        }
+        return item;
+      });
+    } catch {
+      return [];
+    }
   });
 
   useEffect(() => {

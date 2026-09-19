@@ -104,10 +104,11 @@ export const Checkout = () => {
 
     const items = cart.map(item => ({
       product_id: item.productId,
+      product_name: item.product?.name || '',
       size: item.size?.size || null,
       finish: item.finishType || null,
       quantity: item.quantity,
-      image: item.product.images[0] || null,
+      image: item.product?.images?.[0] || null,
       personalization: item.personalizationDetails || null
     }));
 
@@ -116,11 +117,12 @@ export const Checkout = () => {
       
       // Only clear cart AFTER confirmed success
       clearCart();
+      toast.dismiss();
       toast.success('Order placed successfully!');
       navigate(`/order-success/${orderId}`);
     } catch (error: any) {
       console.error('Order placement error:', error);
-      // Show only ONE user-friendly toast (error is already mapped in api.ts)
+      toast.dismiss();
       toast.error(error?.message || 'Unable to place your order right now. Please try again.');
     } finally {
       setIsLoading(false);

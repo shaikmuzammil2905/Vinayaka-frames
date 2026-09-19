@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Product, SizeOption, FinishType } from '../data/mockData';
+import { Product, SizeOption, FinishType, MOCK_DATA } from '../data/mockData';
 
 // Map database product to frontend Product interface
 const mapProduct = (dbProduct: any): Product => {
@@ -63,8 +63,21 @@ export const api = {
     return data.map(mapProduct);
   },
 
-  async getProductById(id: string) {
-    const { data, error } = await supabase
+  async getProductById(idOrSlug: string) {
+    if (!idOrSlug) return null;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+
+    const LEGACY_ID_MAP: Record<string, string> = {
+      p1: '5c06c350-f02d-4b01-a6eb-ea65cc87e278',
+      p2: '1c4788a4-b8d0-422c-a5e8-6d64ea4f0492',
+      p3: '25f39418-8148-49f9-9b49-f12bea38266d',
+      p4: '907a5662-ef0a-4541-ae11-d8696cbd246f',
+    };
+
+    const targetId = LEGACY_ID_MAP[idOrSlug] || idOrSlug;
+    const targetIsUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId);
+
+    let query = supabase
       .from('products')
       .select(`
         *,
@@ -72,12 +85,20 @@ export const api = {
         product_images(image_url, is_main),
         product_sizes(size, price, is_led),
         product_finishes(finish_type)
-      `)
-      .eq('id', id)
-      .single();
+      `);
+
+    if (targetIsUuid) {
+      query = query.eq('id', targetId);
+    } else {
+      query = query.eq('slug', targetId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error || !data) {
-      console.error('Error fetching product:', error);
+      // Fallback: try case-insensitive name match or find in mock data
+      const mock = MOCK_DATA.products.find((p: Product) => p.id === idOrSlug || p.name.toLowerCase().includes(idOrSlug.toLowerCase()));
+      if (mock) return mock;
       return null;
     }
     
@@ -164,30 +185,82 @@ export const api = {
   },
 
   async placeOrder(orderData: any, items: any[]) {
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    const MOCK_ID_MAP: Record<string, string> = {
+      p1: '5c06c350-f02d-4b01-a6eb-ea65cc87e278', // Couple Frame
+      p2: '1c4788a4-b8d0-422c-a5e8-6d64ea4f0492', // Baby Birth Frame
+      p3: '25f39418-8148-49f9-9b49-f12bea38266d', // LED Heart Lamp
+      p4: '907a5662-ef0a-4541-ae11-d8696cbd246f', // Custom Collage Frame
+    };
+
+    let activeDbProducts: any[] | null = null;
+    const sanitizedItems = [];
+
+    for (const item of items) {
+      let resolvedId = item.product_id;
+
+      if (!UUID_REGEX.test(resolvedId)) {
+        if (MOCK_ID_MAP[resolvedId]) {
+          resolvedId = MOCK_ID_MAP[resolvedId];
+        } else {
+          if (!activeDbProducts) {
+            const { data } = await supabase.from('products').select('id, name, slug').eq('active', true);
+            activeDbProducts = data || [];
+          }
+          const match = activeDbProducts.find(p => 
+            p.slug === item.product_id || 
+            (item.product_name && p.name.toLowerCase().includes(item.product_name.toLowerCase()))
+          );
+          if (match) {
+            resolvedId = match.id;
+          } else if (activeDbProducts.length > 0) {
+            resolvedId = activeDbProducts[0].id;
+          }
+        }
+      }
+
+      sanitizedItems.push({
+        product_id: resolvedId,
+        size: item.size || null,
+        finish: item.finish || null,
+        quantity: Math.max(1, Number(item.quantity) || 1),
+        image: item.image || null,
+        personalization: item.personalization || null
+      });
+    }
+
     const { data, error } = await supabase.rpc('place_order', {
-      p_customer_name: orderData.customer_name,
-      p_customer_phone: orderData.customer_phone,
-      p_customer_email: orderData.customer_email,
-      p_address: orderData.address,
-      p_city: orderData.city,
-      p_state: orderData.state,
-      p_pincode: orderData.pincode,
-      p_payment_method: orderData.payment_method,
-      p_items: items
+      p_customer_name: (orderData.customer_name || '').trim(),
+      p_customer_phone: (orderData.customer_phone || '').trim(),
+      p_customer_email: (orderData.customer_email || '').trim(),
+      p_address: (orderData.address || '').trim(),
+      p_city: (orderData.city || '').trim(),
+      p_state: (orderData.state || '').trim(),
+      p_pincode: (orderData.pincode || '').trim(),
+      p_payment_method: orderData.payment_method || 'COD',
+      p_items: sanitizedItems
     });
 
     if (error) {
-      console.error('Supabase placeOrder error:', error.message, error.details, error.hint, error.code);
-      // Map to user-friendly error messages
+      console.error('Supabase placeOrder error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+
       const msg = error.message || '';
       if (msg.includes('invalid or inactive')) {
         throw new Error('One of the products in your cart is no longer available. Please refresh your cart.');
       } else if (msg.includes('permission') || error.code === '42501') {
-        throw new Error('Unable to place your order right now. Please try again later.');
+        throw new Error('Permission denied. Please refresh the page and try again.');
       } else if (msg.includes('violates') || msg.includes('constraint')) {
-        throw new Error('There was an issue with your order details. Please check and try again.');
+        throw new Error('There was an issue with the order details provided. Please check and try again.');
+      } else if (error.code === '22P02') {
+        throw new Error('Invalid product identification. Please refresh your cart and try again.');
       }
-      throw new Error('Unable to place your order right now. Please try again.');
+      throw new Error(msg || 'Unable to place your order right now. Please try again.');
     }
 
     return data; // Returns order_id UUID

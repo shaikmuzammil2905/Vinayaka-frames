@@ -74,7 +74,7 @@ export const CATEGORIES = [
 
 export const PRODUCTS: Product[] = [
   {
-    id: 'p1',
+    id: '5c06c350-f02d-4b01-a6eb-ea65cc87e278', // Real Supabase UUID
     name: 'Personalized Couple Frame',
     category: 'Wedding Frames',
     images: ['https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -95,7 +95,7 @@ export const PRODUCTS: Product[] = [
     isTrending: true,
   },
   {
-    id: 'p2',
+    id: '1c4788a4-b8d0-422c-a5e8-6d64ea4f0492', // Real Supabase UUID
     name: 'Personalized Baby Birth Frame',
     category: 'Baby Frames',
     images: ['https://images.unsplash.com/photo-1519689680058-324335c77eba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -115,7 +115,7 @@ export const PRODUCTS: Product[] = [
     isBestSeller: true,
   },
   {
-    id: 'p3',
+    id: '25f39418-8148-49f9-9b49-f12bea38266d', // Real Supabase UUID
     name: 'LED Heart Lamp',
     category: 'Personalized Gifts',
     images: [dealImage],
@@ -136,7 +136,7 @@ export const PRODUCTS: Product[] = [
     isTrending: true,
   },
   {
-    id: 'p4',
+    id: '907a5662-ef0a-4541-ae11-d8696cbd246f', // Real Supabase UUID
     name: 'Custom Collage Frame',
     category: 'Collage Frames',
     images: ['https://images.unsplash.com/photo-1507608158173-1dcec673a2e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -156,7 +156,7 @@ export const PRODUCTS: Product[] = [
     isNew: true,
   },
   {
-    id: 'p5',
+    id: '00000000-0000-4000-8000-000000000005',
     name: 'Happy Anniversary Frame',
     category: 'Wedding Frames',
     images: ['https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -176,7 +176,7 @@ export const PRODUCTS: Product[] = [
     isNew: true,
   },
   {
-    id: 'p6',
+    id: '00000000-0000-4000-8000-000000000006',
     name: '3D Crystal Photo Cube',
     category: 'Personalized Gifts',
     images: ['https://images.unsplash.com/photo-1563241527-3004b7be0ffd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -196,7 +196,7 @@ export const PRODUCTS: Product[] = [
     isTrending: true,
   },
   {
-    id: 'p7',
+    id: '00000000-0000-4000-8000-000000000007',
     name: 'Wooden Photo Standee',
     category: 'Personalized Gifts',
     images: ['https://images.unsplash.com/photo-1584362917165-526a968579e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -216,7 +216,7 @@ export const PRODUCTS: Product[] = [
     isBestSeller: true,
   },
   {
-    id: 'p8',
+    id: '00000000-0000-4000-8000-000000000008',
     name: 'Birthday Special Mosaic',
     category: 'Mosaic Frames',
     images: ['https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -236,7 +236,7 @@ export const PRODUCTS: Product[] = [
     isBestSeller: true,
   },
   {
-    id: 'p9',
+    id: '00000000-0000-4000-8000-000000000009',
     name: 'Customized Men\'s Wallet',
     category: 'Personalized Gifts',
     images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -256,7 +256,7 @@ export const PRODUCTS: Product[] = [
     isTrending: true,
   },
   {
-    id: 'p10',
+    id: '00000000-0000-4000-8000-000000000010',
     name: 'Divine God Frame',
     category: 'God Frames',
     images: ['https://images.unsplash.com/photo-1574843940344-935cb1017b3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -270,7 +270,7 @@ export const PRODUCTS: Product[] = [
     stock: true,
   },
   {
-    id: 'p11',
+    id: '00000000-0000-4000-8000-000000000011',
     name: 'Classic No-Edit Frame',
     category: 'No-Edit Frames',
     images: ['https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -284,7 +284,7 @@ export const PRODUCTS: Product[] = [
     stock: true,
   },
   {
-    id: 'p12',
+    id: '00000000-0000-4000-8000-000000000012',
     name: 'Birthday Memory Frame',
     category: 'Birthday Frames',
     images: ['https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -303,7 +303,7 @@ export const PRODUCTS: Product[] = [
     stock: true,
   },
   {
-    id: 'p13',
+    id: '00000000-0000-4000-8000-000000000013',
     name: 'In Loving Memory Frame',
     category: 'Death Frames',
     images: ['https://images.unsplash.com/photo-1478147427282-58a87a120781?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
@@ -322,7 +322,7 @@ export const PRODUCTS: Product[] = [
     stock: true,
   },
   {
-    id: 'p14',
+    id: '00000000-0000-4000-8000-000000000014',
     name: 'Hand-painted Oil Portrait',
     category: 'Oil Painting',
     images: ['https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
