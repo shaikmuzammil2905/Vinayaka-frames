@@ -5,6 +5,12 @@ import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { Loader2, ShieldCheck } from 'lucide-react';
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
@@ -81,9 +87,9 @@ export const Checkout = () => {
       return;
     }
 
-    // Only COD is functional right now
-    if (payment !== 'COD') {
-      toast.error('Only Cash on Delivery is available at the moment. Other payment methods coming soon!');
+    // Allowed payment methods check
+    if (payment !== 'COD' && payment !== 'Razorpay') {
+      toast.error('Selected payment method is not available.');
       setIsLoading(false);
       isSubmitting.current = false;
       return;
@@ -113,6 +119,83 @@ export const Checkout = () => {
     }));
 
     try {
+      if (payment === 'Razorpay') {
+        const orderRes = await fetch('/api/create-razorpay-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: cartTotal }),
+        });
+        const orderDataRes = await orderRes.json();
+        
+        if (!orderRes.ok) throw new Error('Failed to initialize payment');
+
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: orderDataRes.amount,
+          currency: orderDataRes.currency,
+          name: 'Vinayak Frames',
+          description: 'Order Payment',
+          order_id: orderDataRes.id,
+          handler: async function (response: any) {
+            try {
+              const verifyRes = await fetch('/api/verify-razorpay-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature
+                }),
+              });
+              
+              const verifyData = await verifyRes.json();
+              if (verifyData.success) {
+                // Payment verified, place order
+                const orderId = await api.placeOrder(orderData, items);
+                await api.updateOrderPaymentStatus(orderId, 'Paid');
+                clearCart();
+                toast.dismiss();
+                toast.success('Order placed successfully!');
+                navigate(`/order-success/${orderId}`);
+              } else {
+                toast.error('Payment verification failed');
+                setIsLoading(false);
+                isSubmitting.current = false;
+              }
+            } catch (err) {
+              console.error('Verification error:', err);
+              toast.error('Payment verification error');
+              setIsLoading(false);
+              isSubmitting.current = false;
+            }
+          },
+          prefill: {
+            name: fullName,
+            email: email,
+            contact: phone
+          },
+          theme: {
+            color: '#1a1a1a'
+          },
+          modal: {
+            ondismiss: function() {
+              setIsLoading(false);
+              isSubmitting.current = false;
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+           toast.error(response.error.description);
+           setIsLoading(false);
+           isSubmitting.current = false;
+        });
+        rzp.open();
+        return; // Wait for Razorpay handler
+      }
+
+      // COD Flow
       const orderId = await api.placeOrder(orderData, items);
       
       // Only clear cart AFTER confirmed success
@@ -124,7 +207,6 @@ export const Checkout = () => {
       console.error('Order placement error:', error);
       toast.dismiss();
       toast.error(error?.message || 'Unable to place your order right now. Please try again.');
-    } finally {
       setIsLoading(false);
       isSubmitting.current = false;
     }
@@ -132,8 +214,7 @@ export const Checkout = () => {
 
   const paymentOptions = [
     { value: 'COD', label: 'Cash on Delivery', icon: '💵', available: true },
-    { value: 'UPI', label: 'UPI (GPay, PhonePe, Paytm)', icon: '📱', available: false },
-    { value: 'Card', label: 'Credit / Debit Card', icon: '💳', available: false },
+    { value: 'Razorpay', label: 'Online Payment (UPI, Cards, NetBanking)', icon: '💳', available: true },
   ];
 
   return (
