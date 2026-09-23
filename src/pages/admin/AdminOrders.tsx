@@ -30,6 +30,7 @@ export const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [creatingShipment, setCreatingShipment] = useState(false);
   const perPage = 15;
 
   const fetchOrders = async () => {
@@ -112,6 +113,24 @@ export const AdminOrders = () => {
       toast.success(`Payment status updated to ${newStatus}`);
     } catch {
       toast.error('Failed to update payment status');
+    }
+  };
+
+  const handleCreateShipment = async (order: any) => {
+    try {
+      setCreatingShipment(true);
+      const res = await api.createDelhiveryShipment(order);
+      if (res.waybill) {
+        await api.updateOrderTracking(order.id, res.waybill);
+        toast.success(`Shipment created! AWB: ${res.waybill}`);
+        const updatedOrder = { ...order, awb_number: res.waybill, tracking_url: `https://delhivery.com/tracking?id=${res.waybill}` };
+        setOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
+        setSelectedOrder(updatedOrder);
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to create shipment');
+    } finally {
+      setCreatingShipment(false);
     }
   };
 
@@ -390,6 +409,33 @@ export const AdminOrders = () => {
                     </select>
                   </div>
                 </div>
+              </div>
+
+              {/* Shipping & Tracking */}
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-sm font-medium text-text-muted mb-3 uppercase tracking-wider">Shipping (Delhivery)</h3>
+                {selectedOrder.awb_number ? (
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <span className="text-text-muted text-sm">AWB Number: </span>
+                      <span className="font-medium text-sm">{selectedOrder.awb_number}</span>
+                    </div>
+                    {selectedOrder.tracking_url && (
+                       <a href={selectedOrder.tracking_url} target="_blank" rel="noreferrer" className="text-primary text-sm hover:underline flex items-center gap-1">
+                         <Truck className="w-4 h-4" /> Track Shipment
+                       </a>
+                    )}
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => handleCreateShipment(selectedOrder)}
+                    disabled={creatingShipment}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 text-sm font-medium"
+                  >
+                    {creatingShipment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
+                    {creatingShipment ? 'Creating...' : 'Create Delhivery Shipment'}
+                  </button>
+                )}
               </div>
 
               {/* Metadata */}

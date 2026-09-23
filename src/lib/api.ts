@@ -346,6 +346,31 @@ export const api = {
       pendingPayments,
       totalRevenue
     };
+  },
+
+  async createDelhiveryShipment(orderDetails: any) {
+    const response = await fetch('/api/create-delhivery-shipment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ orderDetails })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create shipment');
+    }
+    return data;
+  },
+
+  async updateOrderTracking(orderId: string, awb: string) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ awb_number: awb, tracking_url: `https://delhivery.com/tracking?id=${awb}` })
+      .eq('id', orderId);
+
+    if (error) throw error;
   }
 };
 

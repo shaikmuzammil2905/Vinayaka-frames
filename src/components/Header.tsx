@@ -95,7 +95,7 @@ export const Header = () => {
               <Menu className="h-6 w-6" />
             </button>
             <Link to="/" className="flex justify-start">
-              <img src={logo} alt="Vinayak Frames" className="h-10 object-contain" />
+              <img src={logo} alt="Vinayak Frames" className="h-12 object-contain" />
             </Link>
           </div>
           
