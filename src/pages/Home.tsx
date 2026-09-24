@@ -4,7 +4,6 @@ import { HeroSlider } from '../components/HeroSlider';
 import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
 import { CustomerReviews } from '../components/CustomerReviews';
-import { MOCK_DATA } from '../data/mockData';
 import { api } from '../lib/api';
 
 import dealImage from '../assets/deal-image-9.png';
@@ -15,13 +14,13 @@ import promoBg from '../assets/promo-bg.png';
 import birthdaySpecialBg from '../assets/birthday-special.png';
 
 export const Home = () => {
-  const [products, setProducts] = useState(MOCK_DATA.products);
-  const [categories, setCategories] = useState(MOCK_DATA.categories);
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     let active = true;
     api.getProducts().then(data => {
-      if (active && data && data.length > 0) {
+      if (active && data) {
         setProducts(data);
       }
     }).catch(console.error);

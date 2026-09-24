@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Product, SizeOption, FinishType, MOCK_DATA } from '../data/mockData';
+import { Product, SizeOption, FinishType } from '../data/mockData';
 
 // Map database product to frontend Product interface
 const mapProduct = (dbProduct: any): Product => {
@@ -96,9 +96,6 @@ export const api = {
     const { data, error } = await query.maybeSingle();
 
     if (error || !data) {
-      // Fallback: try case-insensitive name match or find in mock data
-      const mock = MOCK_DATA.products.find((p: Product) => p.id === idOrSlug || p.name.toLowerCase().includes(idOrSlug.toLowerCase()));
-      if (mock) return mock;
       return null;
     }
     
@@ -187,13 +184,6 @@ export const api = {
   async placeOrder(orderData: any, items: any[]) {
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    const MOCK_ID_MAP: Record<string, string> = {
-      p1: '5c06c350-f02d-4b01-a6eb-ea65cc87e278', // Couple Frame
-      p2: '1c4788a4-b8d0-422c-a5e8-6d64ea4f0492', // Baby Birth Frame
-      p3: '25f39418-8148-49f9-9b49-f12bea38266d', // LED Heart Lamp
-      p4: '907a5662-ef0a-4541-ae11-d8696cbd246f', // Custom Collage Frame
-    };
-
     let activeDbProducts: any[] | null = null;
     const sanitizedItems = [];
 
@@ -201,22 +191,18 @@ export const api = {
       let resolvedId = item.product_id;
 
       if (!UUID_REGEX.test(resolvedId)) {
-        if (MOCK_ID_MAP[resolvedId]) {
-          resolvedId = MOCK_ID_MAP[resolvedId];
-        } else {
-          if (!activeDbProducts) {
-            const { data } = await supabase.from('products').select('id, name, slug').eq('active', true);
-            activeDbProducts = data || [];
-          }
-          const match = activeDbProducts.find(p => 
-            p.slug === item.product_id || 
-            (item.product_name && p.name.toLowerCase().includes(item.product_name.toLowerCase()))
-          );
-          if (match) {
-            resolvedId = match.id;
-          } else if (activeDbProducts.length > 0) {
-            resolvedId = activeDbProducts[0].id;
-          }
+        if (!activeDbProducts) {
+          const { data } = await supabase.from('products').select('id, name, slug').eq('active', true);
+          activeDbProducts = data || [];
+        }
+        const match = activeDbProducts.find(p => 
+          p.slug === item.product_id || 
+          (item.product_name && p.name.toLowerCase().includes(item.product_name.toLowerCase()))
+        );
+        if (match) {
+          resolvedId = match.id;
+        } else if (activeDbProducts.length > 0) {
+          resolvedId = activeDbProducts[0].id;
         }
       }
 

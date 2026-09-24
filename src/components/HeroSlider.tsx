@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import heroImage1 from '../assets/hero-slide-1.png';
 import heroBg from '../assets/hero-bg.png';
@@ -36,10 +37,32 @@ const slides = [
 
 export const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [heroData, setHeroData] = useState<any>(null);
+
+  useEffect(() => {
+    let active = true;
+    api.getSiteSettings().then(data => {
+      if (active && data?.hero) {
+        setHeroData(data.hero);
+      }
+    });
+    return () => { active = false; };
+  }, []);
+
+  const currentSlides = [...slides];
+  if (heroData) {
+    currentSlides[0] = {
+      ...currentSlides[0],
+      title: heroData.heading || currentSlides[0].title,
+      subtitle: heroData.subtitle || currentSlides[0].subtitle,
+      cta: heroData.button_text || currentSlides[0].cta,
+      image: heroData.hero_image || currentSlides[0].image,
+    };
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => (prev + 1) % currentSlides.length);
     }, 5000);
     return () => clearInterval(timer);
   }, []);
@@ -56,15 +79,15 @@ export const HeroSlider = () => {
           className="absolute inset-0"
         >
           <img 
-            src={slides[currentSlide].image} 
-            alt={slides[currentSlide].title} 
+            src={currentSlides[currentSlide].image} 
+            alt={currentSlides[currentSlide].title} 
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className={`absolute inset-0 bg-gradient-to-r ${slides[currentSlide].gradient || 'from-black/70 via-black/40'} to-transparent`}></div>
+          <div className={`absolute inset-0 bg-gradient-to-r ${currentSlides[currentSlide].gradient || 'from-black/70 via-black/40'} to-transparent`}></div>
           
           <div className="absolute inset-0 flex items-center">
             <div className="container-custom w-full">
-              <div className={`max-w-xl ${slides[currentSlide].textColor || 'text-white'}`}>
+              <div className={`max-w-xl ${currentSlides[currentSlide].textColor || 'text-white'}`}>
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -74,7 +97,7 @@ export const HeroSlider = () => {
                   <span className={`bg-primary/90 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm shadow-sm`}>
                     🎁 FREE Gift Packing
                   </span>
-                  <span className={`bg-white/20 border border-white/30 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm shadow-sm ${slides[currentSlide].textColor || 'text-white'}`}>
+                  <span className={`bg-white/20 border border-white/30 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm shadow-sm ${currentSlides[currentSlide].textColor || 'text-white'}`}>
                     🚚 All India Delivery
                   </span>
                 </motion.div>
@@ -85,7 +108,7 @@ export const HeroSlider = () => {
                   transition={{ delay: 0.4, duration: 0.5 }}
                   className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-4"
                 >
-                  {slides[currentSlide].title}
+                  {currentSlides[currentSlide].title}
                 </motion.h1>
                 
                 <motion.p 
@@ -94,7 +117,7 @@ export const HeroSlider = () => {
                   transition={{ delay: 0.5, duration: 0.5 }}
                   className="text-base md:text-lg opacity-90 mb-8 max-w-lg"
                 >
-                  {slides[currentSlide].subtitle}
+                  {currentSlides[currentSlide].subtitle}
                 </motion.p>
                 
                 <motion.div
@@ -103,10 +126,10 @@ export const HeroSlider = () => {
                   transition={{ delay: 0.6, duration: 0.5 }}
                 >
                   <Link 
-                    to={slides[currentSlide].link}
+                    to={currentSlides[currentSlide].link}
                     className="inline-block bg-primary text-white font-bold px-10 py-4 text-lg rounded-full hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30"
                   >
-                    {slides[currentSlide].cta}
+                    {currentSlides[currentSlide].cta}
                   </Link>
                 </motion.div>
               </div>
@@ -117,7 +140,7 @@ export const HeroSlider = () => {
 
       {/* Indicators */}
       <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-10">
-        {slides.map((_, idx) => (
+        {currentSlides.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setCurrentSlide(idx)}

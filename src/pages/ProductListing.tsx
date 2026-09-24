@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
-import { MOCK_DATA, Product } from '../data/mockData';
+import { Product } from '../data/mockData';
 import { api } from '../lib/api';
-
 interface ProductListingProps {
   isDealsPage?: boolean;
 }
@@ -13,15 +12,15 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
   const [searchParams] = useSearchParams();
   const search = searchParams.get('search') || '';
 
-  const [allProducts, setAllProducts] = useState<Product[]>(MOCK_DATA.products);
-  const [allCategories, setAllCategories] = useState(MOCK_DATA.categories);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState('featured');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     let active = true;
     api.getProducts().then(data => {
-      if (active && data && data.length > 0) setAllProducts(data);
+      if (active && data) setAllProducts(data);
     }).catch(console.error);
 
     api.getCategories().then(cats => {

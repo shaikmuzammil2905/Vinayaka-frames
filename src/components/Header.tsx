@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 import { ShoppingCart, Heart, Search, Menu, User, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import logo from '../assets/logo.jpg';
 
-const TopAnnouncement = () => (
+const TopAnnouncement = ({ text }: { text?: string }) => (
   <div className="bg-primary text-primary-light text-sm font-medium py-2 overflow-hidden flex whitespace-nowrap w-full">
     <div className="animate-marquee flex whitespace-nowrap min-w-max">
       {[...Array(2)].map((_, i) => (
         <div key={i} className="flex whitespace-nowrap">
-          <span className="mx-4">🎁 FREE Gift Packing on Every Order</span>
-          <span className="mx-4">🚚 All Over India Delivery Available</span>
-          <span className="mx-4">✨ Custom Frames Available</span>
-          <span className="mx-4">🛍️ Retail & Wholesale Orders Welcome</span>
-          <span className="mx-4">📞 Call / WhatsApp: 9398277441</span>
+          {text ? (
+            <span className="mx-4">{text}</span>
+          ) : (
+            <>
+              <span className="mx-4">🎁 FREE Gift Packing on Every Order</span>
+              <span className="mx-4">🚚 All Over India Delivery Available</span>
+              <span className="mx-4">✨ Custom Frames Available</span>
+              <span className="mx-4">🛍️ Retail & Wholesale Orders Welcome</span>
+              <span className="mx-4">📞 Call / WhatsApp: 9398277441</span>
+            </>
+          )}
         </div>
       ))}
     </div>
@@ -26,7 +33,16 @@ export const Header = () => {
   const { wishlist } = useWishlist();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [settings, setSettings] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    api.getSiteSettings().then(data => {
+      if (active) setSettings(data);
+    });
+    return () => { active = false; };
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +53,9 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-border">
-      <TopAnnouncement />
+      {(!settings || settings?.banner?.show !== false) && (
+        <TopAnnouncement text={settings?.banner?.text} />
+      )}
       
       <div className="container-custom py-4">
         {/* Desktop Header */}

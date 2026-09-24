@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_DATA, FinishType, SizeOption, LED_FRAME_SIZES, Product } from '../data/mockData';
+import { FinishType, SizeOption, LED_FRAME_SIZES, Product } from '../data/mockData';
 import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check } from 'lucide-react';
@@ -43,8 +43,7 @@ export const ProductDetail = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   
-  const mockProduct = MOCK_DATA.products.find(p => p.id === productId);
-  const [product, setProduct] = useState<Product | undefined>(mockProduct);
+  const [product, setProduct] = useState<Product | undefined>(undefined);
 
   useEffect(() => {
     if (!productId) return;
