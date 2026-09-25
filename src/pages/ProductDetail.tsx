@@ -394,17 +394,7 @@ Please confirm availability and order details.`;
               </ul>
             </div>
             
-            {/* Trust Before & After */}
-            <div className="border-t border-gray-100 pt-8 mt-8">
-              <h3 className="font-serif font-semibold text-lg mb-4 text-center">Quality You Can Trust</h3>
-              <p className="text-text-muted text-sm mb-6 text-center">See the amazing transformation of our customers' photos. Before & After results.</p>
-              <div className="grid grid-cols-2 gap-4">
-                <img src={trust1} alt="Before & After 1" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
-                <img src={trust2} alt="Before & After 2" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
-                <img src={trust3} alt="Before & After 3" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
-                <img src={trust4} alt="Before & After 4" className="w-full h-auto rounded-xl shadow-sm border border-gray-100" />
-              </div>
-            </div>
+            {/* Trust Before & After removed */}
 
           </div>
         </div>

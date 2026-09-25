@@ -60,6 +60,17 @@ CREATE TABLE product_sizes (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 4b. Product Variants (Design Variants)
+CREATE TABLE product_variants (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  image_url TEXT,
+  price_adjustment DECIMAL(10,2) DEFAULT 0.00,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- 5. Product Finishes
 CREATE TABLE product_finishes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -102,6 +113,7 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_sizes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_variants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_finishes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
@@ -111,6 +123,7 @@ CREATE POLICY "Allow public read-only access to categories" ON categories FOR SE
 CREATE POLICY "Allow public read-only access to products" ON products FOR SELECT USING (active = true);
 CREATE POLICY "Allow public read-only access to product_images" ON product_images FOR SELECT USING (true);
 CREATE POLICY "Allow public read-only access to product_sizes" ON product_sizes FOR SELECT USING (true);
+CREATE POLICY "Allow public read-only access to product_variants" ON product_variants FOR SELECT USING (active = true);
 CREATE POLICY "Allow public read-only access to product_finishes" ON product_finishes FOR SELECT USING (true);
 CREATE POLICY "Allow public read-only access to approved reviews" ON reviews FOR SELECT USING (approved = true);
 CREATE POLICY "Allow public read-only access to site_settings" ON site_settings FOR SELECT USING (true);
