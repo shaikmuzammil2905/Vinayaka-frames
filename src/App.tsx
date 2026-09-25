@@ -8,6 +8,7 @@ import { Footer } from './components/Footer';
 import { BottomNavigation } from './components/BottomNavigation';
 import { Home } from './pages/Home';
 import { SearchPage } from './pages/SearchPage';
+import { Categories } from './pages/Categories';
 import { ProductListing } from './pages/ProductListing';
 import { ProductDetail } from './pages/ProductDetail';
 import { Cart } from './pages/Cart';
@@ -47,7 +48,7 @@ function App() {
             <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
             <Route path="/search" element={<PublicLayout><SearchPage /></PublicLayout>} />
             <Route path="/deals" element={<PublicLayout><ProductListing isDealsPage={true} /></PublicLayout>} />
-            <Route path="/categories" element={<PublicLayout><ProductListing /></PublicLayout>} />
+            <Route path="/categories" element={<PublicLayout><Categories /></PublicLayout>} />
             <Route path="/category/:categoryId" element={<PublicLayout><ProductListing /></PublicLayout>} />
             <Route path="/product/:productId" element={<PublicLayout><ProductDetail /></PublicLayout>} />
             <Route path="/cart" element={<PublicLayout><Cart /></PublicLayout>} />

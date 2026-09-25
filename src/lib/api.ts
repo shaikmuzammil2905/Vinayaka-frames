@@ -31,6 +31,12 @@ const mapProduct = (dbProduct: any): Product => {
       isLed: s.is_led
     })) || undefined,
     finishTypes: dbProduct.product_finishes?.map((f: any) => f.finish_type) || undefined,
+    variants: dbProduct.product_variants?.map((v: any) => ({
+      id: v.id,
+      name: v.name,
+      imageUrl: v.image_url,
+      priceAdjustment: Number(v.price_adjustment) || 0
+    })) || undefined,
   };
 };
 
@@ -43,7 +49,8 @@ export const api = {
         categories(name),
         product_images(image_url, is_main),
         product_sizes(size, price, is_led),
-        product_finishes(finish_type)
+        product_finishes(finish_type),
+        product_variants(id, name, image_url, price_adjustment)
       `)
       .eq('active', true)
       .order('created_at', { ascending: false });
@@ -84,7 +91,8 @@ export const api = {
         categories(name),
         product_images(image_url, is_main),
         product_sizes(size, price, is_led),
-        product_finishes(finish_type)
+        product_finishes(finish_type),
+        product_variants(id, name, image_url, price_adjustment)
       `);
 
     if (targetIsUuid) {

@@ -59,6 +59,8 @@ export const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState<SizeOption | undefined>(product?.sizes?.[0]);
   const [selectedFinish, setSelectedFinish] = useState<FinishType | undefined>(product?.finishTypes?.[0]);
   const [quantity, setQuantity] = useState(1);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   
   const [customName, setCustomName] = useState('');
   const [customMessage, setCustomMessage] = useState('');
@@ -129,7 +131,8 @@ export const ProductDetail = () => {
     return sizeOption.price;
   };
 
-  const currentPrice = selectedSize ? getPriceForSize(selectedSize, selectedFinish) : product.price;
+  const selectedVariant = product.variants?.find(v => v.id === selectedVariantId);
+  const currentPrice = (selectedSize ? getPriceForSize(selectedSize, selectedFinish) : product.price) + (selectedVariant?.priceAdjustment || 0);
 
   const handleAddToCart = () => {
     const activeFrameObj = [...frames1Inch, ...frames15Inch].find(f => f.id === selectedFrameStyle);
@@ -144,6 +147,8 @@ export const ProductDetail = () => {
         customName: customName || undefined,
         customMessage: customMessage || undefined,
         frameStyle: activeFrameObj ? activeFrameObj.name : undefined,
+        variantId: selectedVariantId || undefined,
+        variantName: selectedVariant?.name,
       },
       itemPrice: currentPrice,
     });
@@ -182,9 +187,27 @@ Please confirm availability and order details.`;
       <div className="container-custom py-8 md:py-12">
         <div className="flex flex-col md:flex-row gap-10 lg:gap-16">
           {/* Left: Images */}
-          <div className="w-full md:w-1/2">
-            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-50 card-shadow sticky top-24">
-              <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+          <div className="w-full md:w-1/2 flex flex-col md:flex-row gap-4 sticky top-24 self-start">
+            {/* Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible no-scrollbar order-2 md:order-1 w-full md:w-24 shrink-0">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setMainImageIndex(idx)}
+                    className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 transition-all ${
+                      mainImageIndex === idx ? 'border-primary' : 'border-transparent hover:border-primary/50'
+                    }`}
+                  >
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* Main Image */}
+            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-50 card-shadow flex-grow order-1 md:order-2 w-full">
+              <img src={product.images[mainImageIndex] || product.images[0]} alt={product.name} className="w-full h-full object-contain" />
             </div>
           </div>
           
@@ -218,6 +241,45 @@ Please confirm availability and order details.`;
                 <Truck className="h-5 w-5" /> 🚚 All Over India Delivery Available
               </div>
             </div>
+
+            {/* Design Variants */}
+            {product.variants && product.variants.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-text-main mb-3">Select Design</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {product.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariantId(v.id)}
+                      className={`relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all ${
+                        selectedVariantId === v.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-100 hover:border-primary/30 bg-white'
+                      }`}
+                    >
+                      {v.imageUrl && (
+                        <div className="w-full aspect-square rounded-lg overflow-hidden bg-gray-50 mb-1">
+                          <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-text-main text-center leading-tight">
+                        {v.name}
+                      </span>
+                      {v.priceAdjustment > 0 && (
+                        <span className="text-xs text-primary font-medium">
+                          +₹{v.priceAdjustment}
+                        </span>
+                      )}
+                      {selectedVariantId === v.id && (
+                        <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 shadow-sm">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Selectors */}
             {product.sizes && product.sizes.length > 0 && (

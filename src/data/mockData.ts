@@ -5,6 +5,13 @@ export interface SizeOption {
   price: number;
 }
 
+export interface ProductVariant {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  priceAdjustment: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -15,6 +22,7 @@ export interface Product {
   reviews: number;
   sizes?: SizeOption[];
   finishTypes?: FinishType[];
+  variants?: ProductVariant[];
   price: number;
   originalPrice?: number;
   discount?: number;
