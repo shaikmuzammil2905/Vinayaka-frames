@@ -32,9 +32,9 @@ export const CustomerReviews = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="flex overflow-x-auto gap-6 md:gap-8 pb-8 snap-x hide-scrollbar px-4 -mx-4 md:px-0 md:mx-0">
           {reviews.map((review) => (
-            <div key={review.id} className="bg-white rounded-2xl p-8 card-shadow border border-gray-100 relative group hover:-translate-y-2 transition-transform duration-300">
+            <div key={review.id} className="min-w-[85vw] md:min-w-[400px] shrink-0 snap-start bg-white rounded-2xl p-8 card-shadow border border-gray-100 relative group hover:-translate-y-2 transition-transform duration-300">
               <div className="absolute top-6 right-6 text-primary/10 group-hover:text-primary/20 transition-colors">
                 <Quote className="h-12 w-12" />
               </div>

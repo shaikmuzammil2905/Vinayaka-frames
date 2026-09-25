@@ -68,6 +68,33 @@ export const ProductDetail = () => {
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  }
+
+  const onTouchEndHandler = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && product?.images && product.images.length > 1) {
+      setMainImageIndex(prev => (prev + 1) % product.images!.length);
+    }
+    if (isRightSwipe && product?.images && product.images.length > 1) {
+      setMainImageIndex(prev => (prev - 1 + product.images!.length) % product.images!.length);
+    }
+  }
   
   const getFrameThickness = (sizeStr?: string) => {
     if (!sizeStr) return '1 Inch';
@@ -206,7 +233,12 @@ Please confirm availability and order details.`;
             )}
             
             {/* Main Image */}
-            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-50 card-shadow flex-grow order-1 md:order-2 w-full">
+            <div 
+              className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-50 card-shadow flex-grow order-1 md:order-2 w-full touch-pan-y"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEndHandler}
+            >
               <img src={product.images[mainImageIndex] || product.images[0]} alt={product.name} className="w-full h-full object-contain" />
             </div>
           </div>

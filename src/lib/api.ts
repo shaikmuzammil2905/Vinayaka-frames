@@ -114,6 +114,49 @@ export const api = {
     return mapProduct(data);
   },
 
+  async getProductsByCategorySlug(slug: string) {
+    if (!slug) return [];
+    
+    // First find the category id
+    const { data: categoryData, error: catError } = await supabase
+      .from('categories')
+      .select('id, name')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (catError || !categoryData) {
+      console.error('Error fetching category:', catError);
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories(name),
+        product_images(image_url, is_main),
+        product_sizes(size, price, is_led),
+        product_finishes(finish_type),
+        product_variants(id, name, image_url, price_adjustment)
+      `)
+      .eq('category_id', categoryData.id)
+      .eq('active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching products by category:', error);
+      return [];
+    }
+
+    data.forEach(p => {
+      if (p.product_images) {
+        p.product_images.sort((a: any, b: any) => (a.is_main === b.is_main ? 0 : a.is_main ? -1 : 1));
+      }
+    });
+
+    return data.map(mapProduct);
+  },
+
   async getCategories() {
     const { data, error } = await supabase
       .from('categories')

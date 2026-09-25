@@ -19,16 +19,23 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
 
   useEffect(() => {
     let active = true;
-    api.getProducts().then(data => {
-      if (active && data) setAllProducts(data);
-    }).catch(console.error);
+    
+    if (categoryId && !isDealsPage) {
+      api.getProductsByCategorySlug(categoryId).then(data => {
+        if (active && data) setAllProducts(data);
+      }).catch(console.error);
+    } else {
+      api.getProducts().then(data => {
+        if (active && data) setAllProducts(data);
+      }).catch(console.error);
+    }
 
     api.getCategories().then(cats => {
       if (active && cats) setAllCategories(cats);
     }).catch(console.error);
 
     return () => { active = false; };
-  }, []);
+  }, [categoryId, isDealsPage]);
 
   const activeCategory = useMemo(() => {
     if (!categoryId) return null;
@@ -49,9 +56,8 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
 
     if (isDealsPage) {
       list = list.filter(p => p.discount !== undefined && p.discount > 0);
-    } else if (activeCategory) {
-      list = list.filter(p => p.category.toLowerCase() === activeCategory.name.toLowerCase());
     }
+    // Products are already filtered by DB when categoryId is present
 
     if (search.trim()) {
       const q = search.toLowerCase();
