@@ -13,6 +13,8 @@ export interface CartItem {
     customName?: string;
     customMessage?: string;
     frameStyle?: string;
+    variantId?: string;
+    variantName?: string;
   };
   itemPrice: number;
 }
