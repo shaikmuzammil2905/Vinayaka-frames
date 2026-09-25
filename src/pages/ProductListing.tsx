@@ -16,18 +16,32 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
   const [allCategories, setAllCategories] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState('featured');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
     
     if (categoryId && !isDealsPage) {
       api.getProductsByCategorySlug(categoryId).then(data => {
-        if (active && data) setAllProducts(data);
-      }).catch(console.error);
+        if (active) {
+          if (data) setAllProducts(data);
+          setLoading(false);
+        }
+      }).catch(err => {
+        console.error(err);
+        if (active) setLoading(false);
+      });
     } else {
       api.getProducts().then(data => {
-        if (active && data) setAllProducts(data);
-      }).catch(console.error);
+        if (active) {
+          if (data) setAllProducts(data);
+          setLoading(false);
+        }
+      }).catch(err => {
+        console.error(err);
+        if (active) setLoading(false);
+      });
     }
 
     api.getCategories().then(cats => {
@@ -145,7 +159,18 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
           </div>
           
           <div className="flex-1">
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                  <div key={i} className="animate-pulse bg-white rounded-2xl p-4 card-shadow border border-gray-100 flex flex-col h-[350px]">
+                    <div className="bg-gray-200 rounded-xl h-48 w-full mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-auto"></div>
+                    <div className="h-8 bg-gray-200 rounded w-full mt-4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
                 <p className="text-gray-500 text-base mb-4">No products found matching your criteria.</p>
               </div>
