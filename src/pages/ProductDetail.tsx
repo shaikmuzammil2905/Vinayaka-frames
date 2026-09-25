@@ -204,7 +204,7 @@ Please confirm availability and order details.`;
   };
 
   return (
-    <div className="bg-white min-h-screen pb-20">
+    <div className="bg-white min-h-screen pb-28">
       <div className="bg-gray-50 py-3 border-b border-gray-100">
         <div className="container-custom text-sm text-text-muted">
           Home / {product.category} / <span className="text-text-main">{product.name}</span>
@@ -212,9 +212,9 @@ Please confirm availability and order details.`;
       </div>
       
       <div className="container-custom py-8 md:py-12">
-        <div className="flex flex-col md:flex-row gap-10 lg:gap-16">
+        <div className="flex flex-col md:flex-row gap-10 lg:gap-16 relative">
           {/* Left: Images */}
-          <div className="w-full md:w-1/2 flex flex-col md:flex-row gap-4 sticky top-24 self-start">
+          <div className="w-full md:w-1/2 flex flex-col md:flex-row gap-4 md:sticky md:top-24 self-start z-10 bg-white">
             {/* Thumbnails */}
             {product.images && product.images.length > 1 && (
               <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible no-scrollbar order-2 md:order-1 w-full md:w-24 shrink-0">
@@ -363,7 +363,7 @@ Please confirm availability and order details.`;
                 <span className="text-sm font-bold text-primary">{currentThickness}</span>
               </div>
               
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {activeFrames.map((frame) => (
                   <div 
                     key={frame.id}
