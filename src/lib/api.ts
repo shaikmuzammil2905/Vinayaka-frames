@@ -49,8 +49,7 @@ export const api = {
         categories(name),
         product_images(image_url, is_main),
         product_sizes(size, price, is_led),
-        product_finishes(finish_type),
-        product_variants(id, name, image_url, price_adjustment)
+        product_finishes(finish_type)
       `)
       .eq('active', true)
       .order('created_at', { ascending: false });
@@ -91,8 +90,7 @@ export const api = {
         categories(name),
         product_images(image_url, is_main),
         product_sizes(size, price, is_led),
-        product_finishes(finish_type),
-        product_variants(id, name, image_url, price_adjustment)
+        product_finishes(finish_type)
       `);
 
     if (targetIsUuid) {
@@ -136,8 +134,7 @@ export const api = {
         categories(name),
         product_images(image_url, is_main),
         product_sizes(size, price, is_led),
-        product_finishes(finish_type),
-        product_variants(id, name, image_url, price_adjustment)
+        product_finishes(finish_type)
       `)
       .eq('category_id', categoryData.id)
       .eq('active', true)
