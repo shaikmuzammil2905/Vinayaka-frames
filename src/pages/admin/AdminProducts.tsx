@@ -60,6 +60,7 @@ export const AdminProducts = () => {
   const [sizes, setSizes] = useState<{ size: string; price: number; is_led: boolean }[]>([]);
   const [finishes, setFinishes] = useState<string[]>([]);
   const [images, setImages] = useState<{ url: string; public_id: string; is_main: boolean }[]>([]);
+  const [variants, setVariants] = useState<{ id?: string; name: string; image_url: string; price_adjustment: number; active: boolean }[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
@@ -92,6 +93,7 @@ export const AdminProducts = () => {
     setSizes([...DEFAULT_SIZES]);
     setFinishes([...FINISH_OPTIONS]);
     setImages([]);
+    setVariants([]);
     setShowForm(true);
   };
 
@@ -118,6 +120,10 @@ export const AdminProducts = () => {
     setImages(product.product_images?.map((img: any) => ({
       url: img.image_url, public_id: img.cloudinary_public_id || '', is_main: img.is_main
     })) || []);
+
+    // Fetch variants
+    const { data: variantData } = await supabase.from('product_variants').select('*').eq('product_id', product.id).order('created_at', { ascending: true });
+    setVariants(variantData?.map(v => ({ id: v.id, name: v.name, image_url: v.image_url, price_adjustment: Number(v.price_adjustment), active: v.active })) || []);
 
     setShowForm(true);
   };
@@ -169,8 +175,16 @@ export const AdminProducts = () => {
 
     try {
       const res = await uploadImageHelper(file);
-      setImages(prev => prev.map((img, i) => i === index ? { ...img, url: res.url, public_id: res.public_id } : img));
-      toast.success('Image replaced successfully!');
+      setImages(prev => {
+        const newImages = [...prev];
+        // If index is beyond current length, pad with empty/placeholder if needed, but since we map 5 slots it's fine
+        while (newImages.length <= index) {
+          newImages.push({ url: '', public_id: '', is_main: newImages.length === 0 });
+        }
+        newImages[index] = { url: res.url, public_id: res.public_id, is_main: index === 0 };
+        return newImages;
+      });
+      toast.success(images[index] ? 'Image replaced successfully!' : 'Image uploaded successfully!');
     } catch (err: any) {
       toast.error('Failed to replace image: ' + (err.message || ''));
     } finally {
@@ -246,11 +260,25 @@ export const AdminProducts = () => {
       if (images.length > 0) {
         const sortedImages = [...images].sort((a, b) => (a.is_main === b.is_main ? 0 : a.is_main ? -1 : 1));
         await supabase.from('product_images').insert(
-          sortedImages.map(img => ({
+          sortedImages.map((img, idx) => ({
             product_id: productId!,
             image_url: img.url,
             cloudinary_public_id: img.public_id || '',
-            is_main: img.is_main
+            is_main: idx === 0
+          }))
+        );
+      }
+
+      // Sync variants
+      await supabase.from('product_variants').delete().eq('product_id', productId!);
+      if (variants.length > 0) {
+        await supabase.from('product_variants').insert(
+          variants.map(v => ({
+            product_id: productId!,
+            name: v.name,
+            image_url: v.image_url,
+            price_adjustment: v.price_adjustment,
+            active: v.active
           }))
         );
       }
@@ -435,80 +463,130 @@ export const AdminProducts = () => {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-4 mb-2">
-              {images.map((img, i) => (
-                <div
-                  key={i}
-                  className={`relative w-28 h-28 rounded-2xl border-2 overflow-hidden group shadow-sm bg-gray-50 flex flex-col justify-between ${
-                    img.is_main ? 'border-primary ring-2 ring-primary/20' : 'border-gray-200'
-                  }`}
-                >
-                  <img src={img.url} alt={`Product ${i + 1}`} className="w-full h-full object-cover" />
-                  
-                  {/* Badge */}
-                  {img.is_main && (
-                    <span className="absolute top-1.5 left-1.5 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs z-10">
-                      Main Cover
-                    </span>
-                  )}
-
-                  {/* Hover Overlay Controls */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col justify-between p-2 z-20">
-                    <div className="flex justify-between items-center">
-                      <button
-                        type="button"
-                        onClick={() => setMainImage(i)}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          img.is_main ? 'bg-primary text-white' : 'bg-white/90 text-gray-800 hover:bg-white'
-                        }`}
-                        title="Set as Main Cover"
-                      >
-                        {img.is_main ? '★ Main' : 'Set Main'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeImage(i)}
-                        className="p-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                        title="Remove Image"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+            <div className="flex flex-col gap-4 mb-2">
+              {[
+                { label: 'MAIN PRODUCT IMAGE', desc: 'Primary image shown in the main product gallery.' },
+                { label: 'GALLERY IMAGE 2', desc: 'Second product gallery image.' },
+                { label: 'GALLERY IMAGE 3', desc: 'Third product gallery image.' },
+                { label: 'GALLERY IMAGE 4', desc: 'Fourth product gallery image.' },
+                { label: 'GALLERY IMAGE 5', desc: 'Optional additional gallery image.' },
+              ].map((slot, i) => {
+                const img = images[i];
+                return (
+                  <div key={i} className="flex gap-4 items-center p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="w-24 h-24 shrink-0 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-white overflow-hidden relative group">
+                      {img ? (
+                        <>
+                          <img src={img.url} alt={`Slot ${i + 1}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <label className="text-white cursor-pointer hover:text-primary transition-colors p-1" title="Replace">
+                              <RefreshCw className="w-5 h-5" />
+                              <input type="file" accept="image/*" onChange={(e) => handleReplaceImage(i, e)} className="hidden" />
+                            </label>
+                            <button type="button" onClick={() => removeImage(i)} className="text-white hover:text-red-500 transition-colors p-1" title="Delete">
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 text-gray-400 hover:text-primary transition-colors">
+                          {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6 mb-1" />}
+                          <span className="text-[10px] font-medium text-center px-1">Upload</span>
+                          <input type="file" accept="image/*" onChange={(e) => {
+                            // Temporary direct upload handler for empty slots
+                            if (!e.target.files?.[0]) return;
+                            handleReplaceImage(i, e); 
+                            // Note: if i >= images.length, handleReplaceImage might need adjusting to append, 
+                            // but our upload helper might just push to array.
+                          }} className="hidden" />
+                        </label>
+                      )}
                     </div>
-
-                    {/* Change Pic Button */}
-                    <label className="w-full py-1 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-xs">
-                      <RefreshCw className="w-3 h-3 text-primary" />
-                      <span>Change Pic</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleReplaceImage(i, e)}
-                        className="hidden"
-                      />
-                    </label>
+                    <div>
+                      <h3 className="font-bold text-sm text-gray-800">{slot.label}</h3>
+                      <p className="text-xs text-gray-500">{slot.desc}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-
-              {/* Upload Box */}
-              <label className="w-28 h-28 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary-light/10 transition-all text-center p-2">
-                {uploading ? (
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                ) : (
-                  <>
-                    <Plus className="w-6 h-6 text-gray-400 mb-1" />
-                    <span className="text-[11px] font-medium text-gray-500">+ Upload Pic</span>
-                  </>
-                )}
-                <input
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </label>
+                );
+              })}
             </div>
+          </section>
+
+          {/* Design Variants */}
+          <section className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="font-semibold text-gray-800">Design / Model Variants</h2>
+                <p className="text-xs text-gray-500">Add up to 4 selectable design models for this product.</p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (variants.length >= 4) {
+                    toast.error("You can add up to 4 design variants per product.");
+                    return;
+                  }
+                  setVariants([...variants, { name: '', image_url: '', price_adjustment: 0, active: true }]);
+                }} 
+                className="text-xs px-3 py-1.5 bg-primary-light text-primary rounded-lg hover:bg-primary/20 font-medium"
+              >
+                + Add Variant
+              </button>
+            </div>
+            
+            {variants.length === 0 ? (
+              <p className="text-gray-500 text-sm">No variants configured.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {variants.map((v, i) => (
+                  <div key={i} className="border border-gray-200 rounded-xl p-4 bg-gray-50 flex gap-4">
+                    <div className="w-20 h-20 bg-white border border-gray-200 rounded-lg overflow-hidden shrink-0 flex items-center justify-center text-gray-400 text-xs">
+                      {v.image_url ? (
+                        <img src={v.image_url} className="w-full h-full object-cover" alt="Variant" />
+                      ) : (
+                        "No Image"
+                      )}
+                    </div>
+                    <div className="flex-1 flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-xs text-gray-700">DESIGN / MODEL {i + 1}</span>
+                        <button type="button" onClick={() => setVariants(variants.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>
+                      </div>
+                      <input 
+                        placeholder="Variant Name (e.g. Classic Gold)" 
+                        value={v.name} 
+                        onChange={e => { const newV = [...variants]; newV[i].name = e.target.value; setVariants(newV); }}
+                        className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-primary outline-none"
+                      />
+                      <div className="flex gap-2">
+                        <input 
+                          type="url" 
+                          placeholder="Image URL" 
+                          value={v.image_url} 
+                          onChange={e => { const newV = [...variants]; newV[i].image_url = e.target.value; setVariants(newV); }}
+                          className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-primary outline-none"
+                        />
+                        <input 
+                          type="number" 
+                          placeholder="+ ₹ Price" 
+                          value={v.price_adjustment} 
+                          onChange={e => { const newV = [...variants]; newV[i].price_adjustment = Number(e.target.value); setVariants(newV); }}
+                          className="w-24 px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-primary outline-none"
+                        />
+                      </div>
+                      <label className="flex items-center gap-2 text-sm text-gray-600 mt-1 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={v.active} 
+                          onChange={e => { const newV = [...variants]; newV[i].active = e.target.checked; setVariants(newV); }}
+                          className="rounded text-primary focus:ring-primary"
+                        /> Active
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Sizes */}

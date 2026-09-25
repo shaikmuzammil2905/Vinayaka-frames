@@ -92,7 +92,25 @@ export const AdminCategories = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this category? Products in this category will become uncategorized.')) return;
+    // Check for products first
+    const { data: products, error: checkError } = await supabase
+      .from('products')
+      .select('id')
+      .eq('category_id', id)
+      .limit(1);
+      
+    if (checkError) {
+      toast.error('Error checking category products');
+      return;
+    }
+    
+    if (products && products.length > 0) {
+      toast.error('Products are currently assigned to this category. Please reassign them before deleting.');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) toast.error('Error deleting category');
     else { toast.success('Category deleted! Live on website.'); fetchCategories(); }
