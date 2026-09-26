@@ -4,6 +4,8 @@ import { HeroSlider } from '../components/HeroSlider';
 import { CategoryCard } from '../components/CategoryCard';
 import { ProductCarousel } from '../components/ProductCarousel';
 import { CustomerReviews } from '../components/CustomerReviews';
+import { CustomerVideoReviews } from '../components/CustomerVideoReviews';
+import { ReelsSection } from '../components/ReelsSection';
 import { api } from '../lib/api';
 
 import dealImage from '../assets/deal-image-9.png';
@@ -200,6 +202,8 @@ export const Home = () => {
       )}
       
       <CustomerReviews />
+      <CustomerVideoReviews />
+      <ReelsSection />
 
     </div>
   );

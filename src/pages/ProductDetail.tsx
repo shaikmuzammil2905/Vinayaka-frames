@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FinishType, SizeOption, LED_FRAME_SIZES, Product } from '../data/mockData';
 import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
-import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check } from 'lucide-react';
+import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check, Upload } from 'lucide-react';
 
 import frame1 from '../assets/20260918_162125.jpg.jpeg';
 import frame2 from '../assets/20260918_162341.jpg.jpeg';
@@ -44,6 +44,9 @@ export const ProductDetail = () => {
   const { addToCart } = useCart();
   
   const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [personalizationFields, setPersonalizationFields] = useState<any[]>([]);
+  const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, any>>({});
+  const [dynamicFileInputs, setDynamicFileInputs] = useState<Record<string, File[]>>({});
 
   useEffect(() => {
     if (!productId) return;
@@ -51,6 +54,10 @@ export const ProductDetail = () => {
     api.getProductById(productId).then(data => {
       if (active && data) {
         setProduct(data);
+        // Fetch dynamic personalization fields
+        api.getPersonalizationFields(data.id).then(fields => {
+          if (active) setPersonalizationFields(fields);
+        }).catch(console.error);
       }
     }).catch(console.error);
     return () => { active = false; };
@@ -391,22 +398,167 @@ Please confirm availability and order details.`;
               </div>
             </div>
 
-            {/* Personalization */}
-            {product.customizable && product.personalization && (
+            {/* Dynamic Personalization Fields (from DB) */}
+            {personalizationFields.length > 0 && (
+              <div className="bg-gray-50 p-5 rounded-2xl mb-8 border border-gray-100">
+                <h3 className="font-serif font-semibold text-lg mb-5">Personalization Details</h3>
+                <div className="space-y-5">
+                  {personalizationFields.map((field) => {
+                    const fieldId = `pf-${field.id}`;
+                    const isImageField = field.fieldType === 'single_image' || field.fieldType === 'multiple_image';
+                    const currentFiles = dynamicFileInputs[field.id] || [];
+                    
+                    return (
+                      <div key={field.id}>
+                        <label htmlFor={fieldId} className="block text-sm font-medium text-text-main mb-1.5">
+                          {field.fieldLabel}
+                          {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                        </label>
+                        
+                        {field.fieldType === 'text' && (
+                          <input
+                            id={fieldId}
+                            type="text"
+                            placeholder={field.placeholder || ''}
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            required={field.isRequired}
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                        )}
+                        
+                        {field.fieldType === 'textarea' && (
+                          <textarea
+                            id={fieldId}
+                            placeholder={field.placeholder || ''}
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            rows={3}
+                            required={field.isRequired}
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                          />
+                        )}
+
+                        {field.fieldType === 'date' && (
+                          <input
+                            id={fieldId}
+                            type="date"
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            required={field.isRequired}
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                        )}
+                        
+                        {field.fieldType === 'phone' && (
+                          <input
+                            id={fieldId}
+                            type="tel"
+                            placeholder={field.placeholder || '+91 XXXXX XXXXX'}
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            required={field.isRequired}
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                        )}
+                        
+                        {field.fieldType === 'number' && (
+                          <input
+                            id={fieldId}
+                            type="number"
+                            placeholder={field.placeholder || ''}
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            required={field.isRequired}
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                        )}
+
+                        {field.fieldType === 'dropdown' && (
+                          <select
+                            id={fieldId}
+                            value={dynamicFieldValues[field.id] || ''}
+                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            required={field.isRequired}
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                          >
+                            <option value="">{field.placeholder || '-- Select option --'}</option>
+                            {(field.options || []).map((opt: string) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        )}
+
+                        {field.fieldType === 'checkbox' && (
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              id={fieldId}
+                              type="checkbox"
+                              checked={!!dynamicFieldValues[field.id]}
+                              onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked }))}
+                              className="w-5 h-5 rounded text-primary focus:ring-primary"
+                            />
+                            <span className="text-sm text-text-muted">{field.placeholder || 'Yes, I confirm'}</span>
+                          </label>
+                        )}
+                        
+                        {(field.fieldType === 'single_image' || field.fieldType === 'multiple_image') && (
+                          <div>
+                            <input
+                              id={fieldId}
+                              type="file"
+                              accept="image/*"
+                              multiple={field.fieldType === 'multiple_image'}
+                              required={field.isRequired && currentFiles.length === 0}
+                              onChange={e => {
+                                const files = Array.from(e.target.files || []);
+                                setDynamicFileInputs(prev => ({ ...prev, [field.id]: files }));
+                              }}
+                              className="hidden"
+                            />
+                            <label
+                              htmlFor={fieldId}
+                              className={`flex flex-col items-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${
+                                currentFiles.length > 0 ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'
+                              }`}
+                            >
+                              <ImageIcon className={`h-8 w-8 ${currentFiles.length > 0 ? 'text-green-500' : 'text-gray-400'}`} />
+                              {currentFiles.length > 0 ? (
+                                <div className="text-center">
+                                  <p className="text-sm font-medium text-green-700">
+                                    {currentFiles.length} file{currentFiles.length > 1 ? 's' : ''} selected
+                                  </p>
+                                  <p className="text-xs text-green-600">{currentFiles.map(f => f.name).join(', ')}</p>
+                                </div>
+                              ) : (
+                                <p className="text-sm font-medium text-gray-600">
+                                  {field.placeholder || `Click to upload ${field.fieldType === 'multiple_image' ? 'photos' : 'photo'}`}
+                                </p>
+                              )}
+                            </label>
+                          </div>
+                        )}
+                        
+                        {field.helpText && (
+                          <p className="text-xs text-text-muted mt-1">{field.helpText}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Fallback static personalization (when no dynamic fields configured) */}
+            {personalizationFields.length === 0 && product.customizable && product.personalization && (
               <div className="bg-gray-50 p-5 rounded-2xl mb-8 border border-gray-100">
                 <h3 className="font-serif font-semibold text-lg mb-4">Personalization Details</h3>
                 
                 {product.personalization.photoUpload && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-text-main mb-2">Upload Photo (JPG/PNG)</label>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      ref={fileInputRef} 
-                      onChange={handleFileChange} 
-                    />
-                    <div 
+                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+                    <div
                       className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${photoUploaded ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'}`}
                       onClick={handlePhotoClick}
                     >
@@ -419,9 +571,9 @@ Please confirm availability and order details.`;
                 {product.personalization.customName && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-text-main mb-2">Custom Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter name to be printed" 
+                    <input
+                      type="text"
+                      placeholder="Enter name to be printed"
                       className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
@@ -432,13 +584,13 @@ Please confirm availability and order details.`;
                 {product.personalization.customMessage && (
                   <div>
                     <label className="block text-sm font-medium text-text-main mb-2">Custom Message</label>
-                    <textarea 
-                      placeholder="Enter your special message" 
+                    <textarea
+                      placeholder="Enter your special message"
                       rows={3}
                       className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                       value={customMessage}
                       onChange={(e) => setCustomMessage(e.target.value)}
-                    ></textarea>
+                    />
                   </div>
                 )}
               </div>

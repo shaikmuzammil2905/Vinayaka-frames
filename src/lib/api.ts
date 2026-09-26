@@ -405,6 +405,89 @@ export const api = {
       .eq('id', orderId);
 
     if (error) throw error;
-  }
+  },
+
+  // ============================================================
+  // VIDEO REVIEWS
+  // ============================================================
+  async getVideoReviews() {
+    const { data, error } = await supabase
+      .from('customer_video_reviews')
+      .select('*, products(name)')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching video reviews:', error);
+      return [];
+    }
+
+    return data.map((r: any) => ({
+      id: r.id,
+      customerName: r.customer_name,
+      reviewText: r.review_text,
+      rating: r.rating,
+      videoUrl: r.video_url,
+      thumbnailUrl: r.thumbnail_url,
+      productName: r.products?.name,
+    }));
+  },
+
+  // ============================================================
+  // REELS
+  // ============================================================
+  async getReels() {
+    const { data, error } = await supabase
+      .from('reels')
+      .select('*, products(name)')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching reels:', error);
+      return [];
+    }
+
+    return data.map((r: any) => ({
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      videoUrl: r.video_url,
+      thumbnailUrl: r.thumbnail_url,
+      productName: r.products?.name,
+    }));
+  },
+
+  // ============================================================
+  // PERSONALIZATION FIELDS
+  // ============================================================
+  async getPersonalizationFields(productId: string) {
+    if (!productId) return [];
+    const { data, error } = await supabase
+      .from('personalization_fields')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching personalization fields:', error);
+      return [];
+    }
+
+    return data.map((f: any) => ({
+      id: f.id,
+      fieldLabel: f.field_label,
+      fieldType: f.field_type,
+      placeholder: f.placeholder,
+      helpText: f.help_text,
+      options: f.options ? JSON.parse(f.options) : [],
+      isRequired: f.is_required,
+      displayOrder: f.display_order,
+      isActive: f.is_active,
+    }));
+  },
 };
 

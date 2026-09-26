@@ -1,9 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, ArrowLeft, RefreshCw, Link2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Image as ImageIcon, X, Save, ArrowLeft, RefreshCw, Link2, ChevronUp, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadImageHelper, uploadMultipleImagesHelper } from '../../lib/imageUtils';
 import { getUniqueSlug, slugify } from '../../lib/slugUtils';
+
+const FIELD_TYPES = [
+  { value: 'text', label: 'Text Input' },
+  { value: 'textarea', label: 'Multi-line Text' },
+  { value: 'date', label: 'Date Picker' },
+  { value: 'phone', label: 'Phone Number' },
+  { value: 'number', label: 'Number Input' },
+  { value: 'single_image', label: 'Single Image Upload' },
+  { value: 'multiple_image', label: 'Multiple Image Upload' },
+  { value: 'dropdown', label: 'Dropdown / Select' },
+  { value: 'checkbox', label: 'Checkbox (Yes/No)' },
+];
+
+interface PersonalizationField {
+  id?: string;
+  field_label: string;
+  field_type: string;
+  placeholder: string;
+  help_text: string;
+  options: string;
+  is_required: boolean;
+  display_order: number;
+  is_active: boolean;
+}
 
 const FINISH_OPTIONS = ['Glitter', 'Glossy', 'Matte', 'Fiber Glass / Acrylic', 'LED Lighting'];
 
@@ -61,11 +85,23 @@ export const AdminProducts = () => {
   const [finishes, setFinishes] = useState<string[]>([]);
   const [images, setImages] = useState<{ url: string; public_id: string; is_main: boolean }[]>([]);
   const [variants, setVariants] = useState<{ id?: string; name: string; image_url: string; price_adjustment: number; active: boolean }[]>([]);
+  const [personalizationFields, setPersonalizationFields] = useState<PersonalizationField[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
   const [urlInput, setUrlInput] = useState('');
   const [showUrlModal, setShowUrlModal] = useState(false);
+
+  const emptyField = (): PersonalizationField => ({
+    field_label: '',
+    field_type: 'text',
+    placeholder: '',
+    help_text: '',
+    options: '',
+    is_required: false,
+    display_order: personalizationFields.length,
+    is_active: true,
+  });
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, []);
 
@@ -94,6 +130,7 @@ export const AdminProducts = () => {
     setFinishes([...FINISH_OPTIONS]);
     setImages([]);
     setVariants([]);
+    setPersonalizationFields([]);
     setShowForm(true);
   };
 
@@ -124,6 +161,20 @@ export const AdminProducts = () => {
     // Fetch variants
     const { data: variantData } = await supabase.from('product_variants').select('*').eq('product_id', product.id).order('created_at', { ascending: true });
     setVariants(variantData?.map(v => ({ id: v.id, name: v.name, image_url: v.image_url, price_adjustment: Number(v.price_adjustment), active: v.active })) || []);
+
+    // Fetch personalization fields
+    const { data: pfData } = await supabase.from('personalization_fields').select('*').eq('product_id', product.id).order('display_order', { ascending: true });
+    setPersonalizationFields(pfData?.map(f => ({
+      id: f.id,
+      field_label: f.field_label,
+      field_type: f.field_type,
+      placeholder: f.placeholder || '',
+      help_text: f.help_text || '',
+      options: f.options || '',
+      is_required: f.is_required,
+      display_order: f.display_order,
+      is_active: f.is_active,
+    })) || []);
 
     setShowForm(true);
   };
@@ -297,6 +348,27 @@ export const AdminProducts = () => {
         await supabase.from('product_finishes').insert(
           finishes.map(f => ({ product_id: productId!, finish_type: f }))
         );
+      }
+
+      // Sync personalization fields
+      await supabase.from('personalization_fields').delete().eq('product_id', productId!);
+      if (personalizationFields.length > 0) {
+        const activeFields = personalizationFields.filter(f => f.field_label.trim());
+        if (activeFields.length > 0) {
+          await supabase.from('personalization_fields').insert(
+            activeFields.map((f, idx) => ({
+              product_id: productId!,
+              field_label: f.field_label.trim(),
+              field_type: f.field_type,
+              placeholder: f.placeholder || null,
+              help_text: f.help_text || null,
+              options: f.options || null,
+              is_required: f.is_required,
+              display_order: idx,
+              is_active: f.is_active,
+            }))
+          );
+        }
       }
 
       toast.success(editingId ? 'Product updated! Changes live on website.' : 'Product created! Live on website.');
@@ -630,6 +702,154 @@ export const AdminProducts = () => {
                 </button>
               ))}
             </div>
+          </section>
+
+          {/* Personalization Fields */}
+          <section className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="font-semibold text-gray-800">Personalization Fields</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Configure what customers must fill when ordering this product.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPersonalizationFields(prev => [...prev, emptyField()])}
+                className="text-xs px-3 py-1.5 bg-primary-light text-primary rounded-lg hover:bg-primary/20 font-medium"
+              >
+                + Add Field
+              </button>
+            </div>
+            {personalizationFields.length === 0 ? (
+              <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl">
+                <p className="text-gray-400 text-sm mb-2">No personalization fields configured.</p>
+                <p className="text-gray-400 text-xs">The old photo/name/message checkboxes in Flags still work as fallback.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {personalizationFields.map((field, i) => (
+                  <div key={i} className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-0.5">
+                          <button type="button" onClick={() => {
+                            if (i === 0) return;
+                            const newF = [...personalizationFields];
+                            [newF[i - 1], newF[i]] = [newF[i], newF[i - 1]];
+                            setPersonalizationFields(newF);
+                          }} className="text-gray-400 hover:text-gray-600 p-0.5 disabled:opacity-30" disabled={i === 0}>
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => {
+                            if (i === personalizationFields.length - 1) return;
+                            const newF = [...personalizationFields];
+                            [newF[i], newF[i + 1]] = [newF[i + 1], newF[i]];
+                            setPersonalizationFields(newF);
+                          }} className="text-gray-400 hover:text-gray-600 p-0.5 disabled:opacity-30" disabled={i === personalizationFields.length - 1}>
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Field {i + 1}</span>
+                      </div>
+                      <button type="button" onClick={() => setPersonalizationFields(prev => prev.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-600 p-1">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Field Label *</label>
+                        <input
+                          type="text"
+                          value={field.field_label}
+                          onChange={e => {
+                            const newF = [...personalizationFields];
+                            newF[i] = { ...newF[i], field_label: e.target.value };
+                            setPersonalizationFields(newF);
+                          }}
+                          placeholder="e.g. Enter Couple Names"
+                          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Field Type</label>
+                        <select
+                          value={field.field_type}
+                          onChange={e => {
+                            const newF = [...personalizationFields];
+                            newF[i] = { ...newF[i], field_type: e.target.value };
+                            setPersonalizationFields(newF);
+                          }}
+                          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                        >
+                          {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Placeholder</label>
+                        <input
+                          type="text"
+                          value={field.placeholder}
+                          onChange={e => {
+                            const newF = [...personalizationFields];
+                            newF[i] = { ...newF[i], placeholder: e.target.value };
+                            setPersonalizationFields(newF);
+                          }}
+                          placeholder="e.g. Example: Rahul & Priya"
+                          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Help Text</label>
+                        <input
+                          type="text"
+                          value={field.help_text}
+                          onChange={e => {
+                            const newF = [...personalizationFields];
+                            newF[i] = { ...newF[i], help_text: e.target.value };
+                            setPersonalizationFields(newF);
+                          }}
+                          placeholder="e.g. Will be printed on frame"
+                          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      {field.field_type === 'dropdown' && (
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Dropdown Options (JSON array)</label>
+                          <input
+                            type="text"
+                            value={field.options}
+                            onChange={e => {
+                              const newF = [...personalizationFields];
+                              newF[i] = { ...newF[i], options: e.target.value };
+                              setPersonalizationFields(newF);
+                            }}
+                            placeholder='["Option 1", "Option 2", "Option 3"]'
+                            className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-4 mt-3 flex-wrap">
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input type="checkbox" checked={field.is_required} onChange={e => {
+                          const newF = [...personalizationFields];
+                          newF[i] = { ...newF[i], is_required: e.target.checked };
+                          setPersonalizationFields(newF);
+                        }} className="rounded text-primary" />
+                        <span className="font-medium text-red-600">Required</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input type="checkbox" checked={field.is_active} onChange={e => {
+                          const newF = [...personalizationFields];
+                          newF[i] = { ...newF[i], is_active: e.target.checked };
+                          setPersonalizationFields(newF);
+                        }} className="rounded text-primary" />
+                        <span className="font-medium text-gray-600">Active</span>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Flags */}

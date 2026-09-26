@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Navigate, useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { LayoutDashboard, Package, Tag, MessageSquare, Settings, LogOut, Loader2, Image as ImageIcon, ShoppingCart, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, Tag, MessageSquare, Settings, LogOut, Loader2, Image as ImageIcon, ShoppingCart, Menu, X, Video, Film } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
 export const AdminLayout = () => {
@@ -54,6 +54,8 @@ export const AdminLayout = () => {
     { name: 'Categories', path: '/admin/categories', icon: Tag },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Reviews', path: '/admin/reviews', icon: MessageSquare },
+    { name: 'Video Reviews', path: '/admin/video-reviews', icon: Video },
+    { name: 'Reels', path: '/admin/reels', icon: Film },
     { name: 'Media Library', path: '/admin/media', icon: ImageIcon },
     { name: 'Site Settings', path: '/admin/settings', icon: Settings },
   ];

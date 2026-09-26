@@ -25,6 +25,8 @@ import { AdminReviews } from './pages/admin/AdminReviews';
 import { AdminMedia } from './pages/admin/AdminMedia';
 import { AdminSettings } from './pages/admin/AdminSettings';
 import { AdminOrders } from './pages/admin/AdminOrders';
+import { AdminVideoReviews } from './pages/admin/AdminVideoReviews';
+import { AdminReels } from './pages/admin/AdminReels';
 import { OrderSuccess } from './pages/OrderSuccess';
 
 // Layout wrapper for public pages
@@ -66,6 +68,8 @@ function App() {
               <Route path="categories" element={<AdminCategories />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="reviews" element={<AdminReviews />} />
+              <Route path="video-reviews" element={<AdminVideoReviews />} />
+              <Route path="reels" element={<AdminReels />} />
               <Route path="media" element={<AdminMedia />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
