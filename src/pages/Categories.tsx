@@ -38,7 +38,7 @@ export const Categories = () => {
           {categories.map((cat, idx) => (
             <Link 
               key={cat.id || idx} 
-              to={`/category/${cat.id}`}
+              to={`/category/${cat.slug || cat.id}`}
               className="group block rounded-2xl overflow-hidden bg-white card-shadow hover:shadow-lg transition-all"
             >
               <div className="aspect-square bg-gray-100 overflow-hidden relative">

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2, Loader2, Save, ArrowLeft, Eye, EyeOff, Film } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { uploadVideoHelper } from '../../lib/videoUtils';
+import { uploadVideoHelper, deleteStorageMedia } from '../../lib/videoUtils';
 import { uploadImageHelper } from '../../lib/imageUtils';
 
 interface Reel {
@@ -37,6 +37,8 @@ export const AdminReels = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatusText, setUploadStatusText] = useState('');
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
@@ -85,10 +87,23 @@ export const AdminReels = () => {
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
+    const file = e.target.files[0];
     setUploadingVideo(true);
+    setUploadProgress(0);
+    setUploadStatusText('Starting video upload...');
     try {
-      const result = await uploadVideoHelper(e.target.files[0], 'reels');
-      setForm(prev => ({ ...prev, video_url: result.url }));
+      const result = await uploadVideoHelper(file, 'reels', (percent, text) => {
+        setUploadProgress(percent);
+        setUploadStatusText(text);
+      });
+      if (form.video_url && form.video_url !== result.url) {
+        deleteStorageMedia(form.video_url, 'reels').catch(console.warn);
+      }
+      setForm(prev => ({
+        ...prev,
+        video_url: result.url,
+        thumbnail_url: prev.thumbnail_url || result.thumbnailUrl || '',
+      }));
       toast.success('Reel uploaded successfully!');
     } catch (err: any) {
       toast.error('Upload failed: ' + (err.message || ''));
@@ -144,11 +159,18 @@ export const AdminReels = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (reel: Reel) => {
     if (!window.confirm('Delete this reel permanently?')) return;
-    const { error } = await supabase.from('reels').delete().eq('id', id);
-    if (error) toast.error('Error deleting reel');
-    else { toast.success('Reel deleted'); fetchReels(); }
+    try {
+      await deleteStorageMedia(reel.video_url, 'reels');
+      if (reel.thumbnail_url) await deleteStorageMedia(reel.thumbnail_url, 'product-images');
+      const { error } = await supabase.from('reels').delete().eq('id', reel.id);
+      if (error) throw error;
+      toast.success('Reel deleted');
+      fetchReels();
+    } catch (err: any) {
+      toast.error('Error deleting reel: ' + (err.message || ''));
+    }
   };
 
   const toggleActive = async (id: string, current: boolean) => {
@@ -207,25 +229,41 @@ export const AdminReels = () => {
             <h2 className="font-semibold text-gray-800">Upload Reel *</h2>
             <p className="text-xs text-gray-500">Vertical (9:16) MP4 videos work best for the Reels section.</p>
             <div>
-              <input ref={videoInputRef} type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+              <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/*" onChange={handleVideoUpload} className="hidden" />
               <button
                 type="button"
                 onClick={() => videoInputRef.current?.click()}
                 disabled={uploadingVideo}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary hover:text-primary transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary hover:text-primary transition-colors disabled:opacity-60"
               >
-                {uploadingVideo ? <Loader2 className="w-5 h-5 animate-spin" /> : <Film className="w-5 h-5" />}
-                {uploadingVideo ? 'Uploading Reel...' : 'Click to Upload Reel Video'}
+                {uploadingVideo ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Film className="w-5 h-5" />}
+                {uploadingVideo ? (uploadStatusText || 'Uploading Reel...') : 'Click to Upload Reel Video'}
               </button>
+
+              {uploadingVideo && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                  <div className="flex justify-between text-xs font-semibold text-gray-700">
+                    <span>{uploadStatusText || 'Uploading...'}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-200 rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {form.video_url && (
                 <div className="mt-2">
-                  <p className="text-xs text-green-600 font-medium mb-1">✓ Reel uploaded</p>
+                  <p className="text-xs text-green-600 font-medium mb-1">✓ Reel video ready</p>
                   <video src={form.video_url} controls preload="metadata" className="w-full max-h-48 rounded-xl bg-black object-contain" />
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reel URL (alternative)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reel URL (optional alternative)</label>
               <input
                 type="url"
                 value={form.video_url}
@@ -346,7 +384,7 @@ export const AdminReels = () => {
                   <button onClick={() => toggleActive(reel.id, reel.is_active)} className={`p-1.5 rounded-lg ${reel.is_active ? 'text-orange-500 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'}`} title={reel.is_active ? 'Hide' : 'Show'}>
                     {reel.is_active ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
-                  <button onClick={() => handleDelete(reel.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDelete(reel)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
             </div>

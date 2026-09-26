@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2, Loader2, X, Save, ArrowLeft, Star, Eye, EyeOff, GripVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { uploadVideoHelper } from '../../lib/videoUtils';
+import { uploadVideoHelper, deleteStorageMedia } from '../../lib/videoUtils';
 import { uploadImageHelper } from '../../lib/imageUtils';
 
 interface VideoReview {
@@ -39,6 +39,8 @@ export const AdminVideoReviews = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatusText, setUploadStatusText] = useState('');
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -91,10 +93,23 @@ export const AdminVideoReviews = () => {
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
+    const file = e.target.files[0];
     setUploadingVideo(true);
+    setUploadProgress(0);
+    setUploadStatusText('Starting video upload...');
     try {
-      const result = await uploadVideoHelper(e.target.files[0], 'video-reviews');
-      setForm(prev => ({ ...prev, video_url: result.url }));
+      const result = await uploadVideoHelper(file, 'videos', (percent, text) => {
+        setUploadProgress(percent);
+        setUploadStatusText(text);
+      });
+      if (form.video_url && form.video_url !== result.url) {
+        deleteStorageMedia(form.video_url, 'videos').catch(console.warn);
+      }
+      setForm(prev => ({
+        ...prev,
+        video_url: result.url,
+        thumbnail_url: prev.thumbnail_url || result.thumbnailUrl || '',
+      }));
       toast.success('Video uploaded successfully!');
     } catch (err: any) {
       toast.error('Video upload failed: ' + (err.message || ''));
@@ -152,11 +167,18 @@ export const AdminVideoReviews = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (review: VideoReview) => {
     if (!window.confirm('Delete this video review permanently?')) return;
-    const { error } = await supabase.from('customer_video_reviews').delete().eq('id', id);
-    if (error) toast.error('Error deleting');
-    else { toast.success('Video review deleted'); fetchReviews(); }
+    try {
+      await deleteStorageMedia(review.video_url, 'videos');
+      if (review.thumbnail_url) await deleteStorageMedia(review.thumbnail_url, 'product-images');
+      const { error } = await supabase.from('customer_video_reviews').delete().eq('id', review.id);
+      if (error) throw error;
+      toast.success('Video review deleted');
+      fetchReviews();
+    } catch (err: any) {
+      toast.error('Error deleting: ' + (err.message || ''));
+    }
   };
 
   const toggleActive = async (id: string, current: boolean) => {
@@ -233,30 +255,46 @@ export const AdminVideoReviews = () => {
             <h2 className="font-semibold text-gray-800">Customer Video *</h2>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Upload Customer Video</label>
-              <input ref={videoInputRef} type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+              <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/*" onChange={handleVideoUpload} className="hidden" />
               <button
                 type="button"
                 onClick={() => videoInputRef.current?.click()}
                 disabled={uploadingVideo}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary hover:text-primary transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary hover:text-primary transition-colors disabled:opacity-60"
               >
-                {uploadingVideo ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                {uploadingVideo ? 'Uploading Video...' : 'Click to Upload Customer Video (MP4, WebM)'}
+                {uploadingVideo ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : null}
+                {uploadingVideo ? (uploadStatusText || 'Uploading Video...') : 'Click to Upload Customer Video (MP4, MOV, WebM)'}
               </button>
+
+              {uploadingVideo && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                  <div className="flex justify-between text-xs font-semibold text-gray-700">
+                    <span>{uploadStatusText || 'Uploading...'}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-200 rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {form.video_url && (
                 <div className="mt-2">
-                  <p className="text-xs text-green-600 font-medium mb-1">✓ Video set</p>
+                  <p className="text-xs text-green-600 font-medium mb-1">✓ Video ready</p>
                   <video src={form.video_url} controls preload="metadata" className="w-full rounded-xl max-h-40 bg-black" />
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Video URL (alternative to upload)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Video URL (optional alternative to upload)</label>
               <input
                 type="url"
                 value={form.video_url}
                 onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))}
-                placeholder="https://... (paste direct video URL)"
+                placeholder="https://... (optional fallback)"
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -381,7 +419,7 @@ export const AdminVideoReviews = () => {
                     <button onClick={() => toggleActive(review.id, review.is_active)} className={`p-2 rounded-lg transition-colors ${review.is_active ? 'text-orange-500 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'}`} title={review.is_active ? 'Hide' : 'Show'}>
                       {review.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
-                    <button onClick={() => handleDelete(review.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                    <button onClick={() => handleDelete(review)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

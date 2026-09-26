@@ -6,12 +6,13 @@ interface CategoryCardProps {
     id: string;
     name: string;
     image: string;
+    slug?: string;
   };
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
   return (
-    <Link to={`/category/${category.id}`} className="group flex flex-col items-center gap-3">
+    <Link to={`/category/${category.slug || category.id}`} className="group flex flex-col items-center gap-3">
       <div className="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all duration-300 shadow-sm group-hover:shadow-md bg-white p-1">
         <div className="w-full h-full rounded-full overflow-hidden">
           <img 

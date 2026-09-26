@@ -112,18 +112,39 @@ export const api = {
     return mapProduct(data);
   },
 
-  async getProductsByCategorySlug(slug: string) {
-    if (!slug) return [];
+  async getProductsByCategorySlug(slugOrId: string) {
+    if (!slugOrId) return [];
     
-    // First find the category id
-    const { data: categoryData, error: catError } = await supabase
-      .from('categories')
-      .select('id, name')
-      .eq('slug', slug)
-      .maybeSingle();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+    let categoryId: string | null = null;
 
-    if (catError || !categoryData) {
-      console.error('Error fetching category:', catError);
+    if (isUuid) {
+      categoryId = slugOrId;
+    } else {
+      // Find category by slug
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('slug', slugOrId)
+        .maybeSingle();
+
+      if (categoryData?.id) {
+        categoryId = categoryData.id;
+      } else {
+        // Fallback: match by converted name
+        const cleanSlug = slugOrId.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const { data: allCats } = await supabase.from('categories').select('id, name, slug');
+        const match = allCats?.find(c => 
+          c.slug === slugOrId || 
+          c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug
+        );
+        if (match) {
+          categoryId = match.id;
+        }
+      }
+    }
+
+    if (!categoryId) {
       return [];
     }
 
@@ -136,11 +157,11 @@ export const api = {
         product_sizes(size, price, is_led),
         product_finishes(finish_type)
       `)
-      .eq('category_id', categoryData.id)
+      .eq('category_id', categoryId)
       .eq('active', true)
       .order('created_at', { ascending: false });
 
-    if (error) {
+    if (error || !data) {
       console.error('Error fetching products by category:', error);
       return [];
     }

@@ -112,7 +112,11 @@ export const ProductListing: React.FC<ProductListingProps> = ({ isDealsPage = fa
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-main">{title}</h1>
           </div>
           <div className="flex items-center gap-4 w-full md:w-auto">
-            <span className="text-sm text-text-muted">{filteredProducts.length} products</span>
+            {loading ? (
+              <span className="inline-block w-20 h-5 bg-gray-200 animate-pulse rounded" />
+            ) : (
+              <span className="text-sm text-text-muted">{filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}</span>
+            )}
             <select 
               value={sortBy} 
               onChange={e => setSortBy(e.target.value)}

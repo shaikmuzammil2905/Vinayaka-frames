@@ -44,6 +44,7 @@ export const ProductDetail = () => {
   const { addToCart } = useCart();
   
   const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
   const [personalizationFields, setPersonalizationFields] = useState<any[]>([]);
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, any>>({});
   const [dynamicFileInputs, setDynamicFileInputs] = useState<Record<string, File[]>>({});
@@ -51,15 +52,22 @@ export const ProductDetail = () => {
   useEffect(() => {
     if (!productId) return;
     let active = true;
+    setLoading(true);
     api.getProductById(productId).then(data => {
-      if (active && data) {
-        setProduct(data);
-        // Fetch dynamic personalization fields
-        api.getPersonalizationFields(data.id).then(fields => {
-          if (active) setPersonalizationFields(fields);
-        }).catch(console.error);
+      if (active) {
+        if (data) {
+          setProduct(data);
+          // Fetch dynamic personalization fields
+          api.getPersonalizationFields(data.id).then(fields => {
+            if (active) setPersonalizationFields(fields);
+          }).catch(console.error);
+        }
+        setLoading(false);
       }
-    }).catch(console.error);
+    }).catch(err => {
+      console.error(err);
+      if (active) setLoading(false);
+    });
     return () => { active = false; };
   }, [productId]);
 
@@ -152,8 +160,47 @@ export const ProductDetail = () => {
     }
   }, [currentThickness]); // Depends only on thickness changing
 
+  if (loading) {
+    return (
+      <div className="bg-white min-h-screen pb-28">
+        <div className="bg-gray-50 py-3 border-b border-gray-100">
+          <div className="container-custom">
+            <div className="h-4 bg-gray-200 rounded w-48 animate-pulse" />
+          </div>
+        </div>
+        <div className="container-custom py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <div className="space-y-4">
+              <div className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+              <div className="flex gap-3">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="w-20 h-20 bg-gray-100 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="h-8 bg-gray-200 rounded w-3/4 animate-pulse" />
+              <div className="h-6 bg-gray-200 rounded w-1/4 animate-pulse" />
+              <div className="h-24 bg-gray-100 rounded-xl animate-pulse" />
+              <div className="h-12 bg-gray-200 rounded-xl animate-pulse" />
+              <div className="h-12 bg-gray-200 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
-    return <div className="container-custom py-20 text-center">Product not found</div>;
+    return (
+      <div className="container-custom py-24 text-center">
+        <h2 className="text-2xl font-serif font-bold text-gray-800 mb-2">Product Not Found</h2>
+        <p className="text-gray-500 mb-6">The frame or gift you are looking for may have been moved or is unavailable.</p>
+        <button onClick={() => navigate('/categories')} className="inline-block bg-primary text-white font-medium px-6 py-2.5 rounded-full hover:bg-primary-dark transition-colors">
+          Browse All Products
+        </button>
+      </div>
+    );
   }
 
   const getPriceForSize = (sizeOption: SizeOption, finish?: FinishType) => {
