@@ -140,11 +140,15 @@ export const Checkout = () => {
           throw new Error('Could not load Razorpay secure checkout SDK. Please check your internet connection.');
         }
 
-        // 1. Create order on server side (calculating true price securely from DB)
+        // 1. Create order in Supabase database with server-calculated prices
+        const orderId = await api.placeOrder(orderData, items);
+
+        // 2. Create Razorpay order on server side
         const orderRes = await fetch('/api/create-razorpay-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            orderId,
             orderData,
             items
           }),
@@ -156,9 +160,9 @@ export const Checkout = () => {
           throw new Error(orderDataRes.error || 'Failed to initialize secure payment session.');
         }
 
-        // 2. Open Razorpay LIVE Modal
+        // 3. Open Razorpay LIVE Modal
         const options = {
-          key: orderDataRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
+          key: orderDataRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_Tgy0yqru5LmwIb',
           amount: orderDataRes.amount,
           currency: orderDataRes.currency || 'INR',
           name: 'Vinayaka Frames',
@@ -166,12 +170,12 @@ export const Checkout = () => {
           order_id: orderDataRes.razorpayOrderId,
           handler: async function (response: any) {
             try {
-              // 3. Server-side signature verification
+              // 4. Server-side signature verification
               const verifyRes = await fetch('/api/verify-razorpay-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  order_id: orderDataRes.orderId,
+                  order_id: orderId,
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature
@@ -183,7 +187,7 @@ export const Checkout = () => {
                 clearCart();
                 toast.dismiss();
                 toast.success('Payment verified! Order placed successfully.');
-                navigate(`/order-success/${orderDataRes.orderId}`);
+                navigate(`/order-success/${orderId}`);
               } else {
                 toast.error(verifyData.error || 'Payment signature verification failed. Please contact support.');
                 setIsLoading(false);
@@ -208,7 +212,7 @@ export const Checkout = () => {
             ondismiss: function() {
               setIsLoading(false);
               isSubmitting.current = false;
-              toast('Payment cancelled. You can retry whenever you are ready.', { icon: 'ℹ️' });
+              toast('Payment window closed. You can retry whenever ready.', { icon: 'ℹ️' });
             }
           }
         };
