@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { CheckCircle, Package, Loader2, Home, ArrowRight } from 'lucide-react';
+import { CheckCircle, Package, Loader2, Home, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const paymentMethodLabel = (method: string) => {
   const map: Record<string, string> = {
     COD: 'Cash on Delivery',
+    Razorpay: 'Razorpay Online (UPI, Card, NetBanking)',
     UPI: 'UPI Payment',
     Card: 'Credit / Debit Card',
   };
@@ -20,7 +21,7 @@ const statusBadge = (status: string, type: 'order' | 'payment') => {
     Shipped: 'bg-purple-100 text-purple-800',
     Delivered: 'bg-green-100 text-green-800',
     Cancelled: 'bg-red-100 text-red-800',
-    Paid: 'bg-green-100 text-green-800',
+    Paid: 'bg-green-100 text-green-800 font-semibold',
     Failed: 'bg-red-100 text-red-800',
     Refunded: 'bg-gray-100 text-gray-800',
   };
@@ -63,6 +64,18 @@ export const OrderSuccess = () => {
     );
   }
 
+  // Parse notes for extra payment info if stored as JSON
+  let extraPaymentInfo: any = {};
+  if (order.notes) {
+    try {
+      extraPaymentInfo = JSON.parse(order.notes);
+    } catch {
+      // notes is standard string
+    }
+  }
+
+  const paymentId = order.razorpay_payment_id || extraPaymentInfo.razorpay_payment_id;
+
   return (
     <div className="bg-gray-50 min-h-screen py-12 pb-24">
       <div className="container-custom max-w-2xl">
@@ -72,7 +85,7 @@ export const OrderSuccess = () => {
             <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
           <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-main mb-2">
-            Order Placed Successfully!
+            {order.payment_status === 'Paid' ? 'Payment Verified & Order Confirmed!' : 'Order Placed Successfully!'}
           </h1>
           <p className="text-text-muted mb-4">
             Thank you for your order, <span className="font-medium text-text-main">{order.customer_name}</span>!
@@ -128,7 +141,7 @@ export const OrderSuccess = () => {
               </div>
             )}
             <div className="flex justify-between pt-3 border-t border-gray-100">
-              <span className="font-bold text-text-main text-lg">Total</span>
+              <span className="font-bold text-text-main text-lg">Total Paid</span>
               <span className="font-bold text-primary text-xl">₹{Number(order.total_amount).toLocaleString('en-IN')}</span>
             </div>
           </div>
@@ -152,6 +165,12 @@ export const OrderSuccess = () => {
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusBadge(order.payment_status, 'payment')}`}>
                 {order.payment_status}
               </span>
+              {paymentId && (
+                <p className="text-xs text-text-muted mt-1.5 flex items-center gap-1 font-mono">
+                  <ShieldCheck className="w-3.5 h-3.5 text-green-600 inline shrink-0" />
+                  <span>Ref: {paymentId}</span>
+                </p>
+              )}
             </div>
             <div>
               <h3 className="text-sm font-medium text-text-muted mb-1">Delivery Address</h3>
@@ -166,11 +185,11 @@ export const OrderSuccess = () => {
           <ul className="space-y-2 text-sm text-text-muted">
             <li className="flex items-start gap-2">
               <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              Our team will review and confirm your order shortly.
+              Our team will prepare and carefully package your order.
             </li>
             <li className="flex items-start gap-2">
               <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              You will receive a WhatsApp / call confirmation on <strong>{order.customer_phone}</strong>.
+              You will receive a WhatsApp / SMS update on <strong>{order.customer_phone}</strong> once shipped.
             </li>
             {order.payment_method === 'COD' && (
               <li className="flex items-start gap-2">
@@ -180,7 +199,7 @@ export const OrderSuccess = () => {
             )}
             <li className="flex items-start gap-2">
               <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              For any queries, contact us on WhatsApp or email.
+              For any queries or personalization adjustments, contact us anytime on WhatsApp.
             </li>
           </ul>
         </div>

@@ -385,6 +385,60 @@ export const AdminOrders = () => {
                 </div>
               </div>
 
+              {/* Payment Details */}
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-sm font-medium text-text-muted mb-3 uppercase tracking-wider">Payment Information</h3>
+                {(() => {
+                  let extra: any = {};
+                  try {
+                    if (selectedOrder.notes) extra = JSON.parse(selectedOrder.notes);
+                  } catch {}
+                  const payId = selectedOrder.razorpay_payment_id || extra.razorpay_payment_id;
+                  const rzpOrderId = selectedOrder.razorpay_order_id || extra.razorpay_order_id;
+                  const paidAt = selectedOrder.paid_at || extra.paid_at;
+                  const failReason = selectedOrder.payment_failure_reason || extra.failure_reason;
+
+                  return (
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Method:</span>
+                        <span className="font-medium text-text-main">{selectedOrder.payment_method}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Status:</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusColors[selectedOrder.payment_status] || 'bg-gray-100'}`}>
+                          {selectedOrder.payment_status}
+                        </span>
+                      </div>
+                      {payId && (
+                        <div className="flex justify-between font-mono text-xs">
+                          <span className="text-text-muted">Razorpay Payment ID:</span>
+                          <span className="font-semibold text-primary">{payId}</span>
+                        </div>
+                      )}
+                      {rzpOrderId && (
+                        <div className="flex justify-between font-mono text-xs">
+                          <span className="text-text-muted">Razorpay Order ID:</span>
+                          <span className="text-gray-700">{rzpOrderId}</span>
+                        </div>
+                      )}
+                      {paidAt && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-text-muted">Paid At:</span>
+                          <span className="text-gray-700">{new Date(paidAt).toLocaleString('en-IN')}</span>
+                        </div>
+                      )}
+                      {failReason && (
+                        <div className="flex justify-between text-xs text-red-600 bg-red-50 p-2 rounded-lg">
+                          <span>Failure Reason:</span>
+                          <span className="font-medium">{failReason}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
               {/* Status Controls */}
               <div className="border-t border-gray-100 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
