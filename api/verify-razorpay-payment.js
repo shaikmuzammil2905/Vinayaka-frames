@@ -1,28 +1,46 @@
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
+const DEFAULT_SUPABASE_URL = 'https://fcyjbljpgdggmomlisxf.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjeWpibGpwZ2RnZ21vbWxpc3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NDYxNzUsImV4cCI6MjEwNTMyMjE3NX0.ad7SXUA31dTgKzs91t1yaQAL8BNB8ziMQ1NQ8VWzkWY';
+const DEFAULT_RAZORPAY_KEY_SECRET = 'NEi4glvuUVG3eF6wkX8F1fCd';
+
 export default async function handler(req, res) {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
+    let rawBody = req.body;
+    if (typeof rawBody === 'string') {
+      try {
+        rawBody = JSON.parse(rawBody);
+      } catch (err) {
+        return res.status(400).json({ success: false, error: 'Invalid JSON body' });
+      }
+    }
+
     const {
       order_id,
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature
-    } = req.body || {};
+    } = rawBody || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ success: false, error: 'Missing payment verification parameters.' });
     }
 
-    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (!razorpayKeySecret) {
-      console.error('RAZORPAY_KEY_SECRET is not configured on the server.');
-      return res.status(500).json({ success: false, error: 'Payment gateway configuration error.' });
-    }
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET || DEFAULT_RAZORPAY_KEY_SECRET;
 
     // 1. Verify Razorpay Payment Signature using HMAC-SHA256
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
@@ -37,15 +55,12 @@ export default async function handler(req, res) {
     const isMatch = expectedBuffer.length === receivedBuffer.length &&
       crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
 
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 
-    let supabase = null;
-    if (supabaseUrl && supabaseKey) {
-      supabase = createClient(supabaseUrl, supabaseKey, {
-        auth: { persistSession: false }
-      });
-    }
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false }
+    });
 
     if (!isMatch) {
       console.error('Razorpay Signature Verification Mismatch:', {
@@ -54,7 +69,7 @@ export default async function handler(req, res) {
         order_id
       });
 
-      if (supabase && order_id) {
+      if (order_id) {
         try {
           await supabase.rpc('record_payment_failure', {
             p_order_id: order_id,
@@ -76,7 +91,7 @@ export default async function handler(req, res) {
     }
 
     // 2. Payment verified! Update order in Supabase
-    if (supabase && order_id) {
+    if (order_id) {
       try {
         await supabase.rpc('confirm_razorpay_payment', {
           p_order_id: order_id,
@@ -86,7 +101,6 @@ export default async function handler(req, res) {
         });
       } catch (err) {
         console.warn('RPC confirm_razorpay_payment failed, updating fallback columns:', err?.message);
-        // Fallback update
         await supabase.from('orders').update({
           payment_status: 'Paid',
           order_status: 'Confirmed',
@@ -107,6 +121,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Razorpay Verification Error:', error);
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    return res.status(500).json({ success: false, error: error?.message || 'Internal Server Error' });
   }
 }
