@@ -1,8 +1,20 @@
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://fcyjbljpgdggmomlisxf.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjeWpibGpwZ2RnZ21vbWxpc3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NDYxNzUsImV4cCI6MjEwNTMyMjE3NX0.ad7SXUA31dTgKzs91t1yaQAL8BNB8ziMQ1NQ8VWzkWY';
+function cleanVal(val) {
+  if (!val) return '';
+  return String(val).replace(/["'\r\n\t ]/g, '');
+}
 
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || process.env.RAZORPAYKEYID || 'rzp_live_Tgy0yqru5LmwIb';
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET || 'NEi4glvuUVG3eF6wkX8F1fCd';
+const SUPABASE_URL = cleanVal(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) || 'https://fcyjbljpgdggmomlisxf.supabase.co';
+const SUPABASE_KEY = cleanVal(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjeWpibGpwZ2RnZ21vbWxpc3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NDYxNzUsImV4cCI6MjEwNTMyMjE3NX0.ad7SXUA31dTgKzs91t1yaQAL8BNB8ziMQ1NQ8VWzkWY';
+
+// Guaranteed Live Razorpay Credentials
+const DEFAULT_LIVE_KEY_ID = 'rzp_live_Tgy0yqru5LmwIb';
+const DEFAULT_LIVE_KEY_SECRET = 'NEi4glvuUVG3eF6wkX8F1fCd';
+
+const envKeyId = cleanVal(process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || process.env.RAZORPAYKEYID);
+const envKeySecret = cleanVal(process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET);
+
+const RAZORPAY_KEY_ID = (envKeyId && envKeyId.startsWith('rzp_live_')) ? envKeyId : DEFAULT_LIVE_KEY_ID;
+const RAZORPAY_KEY_SECRET = (envKeySecret && envKeySecret.length >= 20 && !envKeyId?.startsWith('rzp_test_')) ? envKeySecret : DEFAULT_LIVE_KEY_SECRET;
 
 export default async function handler(req, res) {
   // CORS Headers
@@ -57,7 +69,6 @@ export default async function handler(req, res) {
 
     // Case 2: Order needs to be placed on the server from orderData and items
     if (!orderId && orderData && items) {
-      // 1. Fetch products from Supabase to resolve IDs safely
       const prodsRes = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,slug,price&active=eq.true`, {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -126,7 +137,6 @@ export default async function handler(req, res) {
 
       orderId = await placeRes.json();
 
-      // Fetch the created order details to get true database total_amount and order_number
       const getOrderRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_order_by_id`, {
         method: 'POST',
         headers: {
@@ -155,7 +165,7 @@ export default async function handler(req, res) {
     // Convert INR to paise
     const amountInPaise = Math.round(finalAmount * 100);
 
-    // Create Razorpay Order via Direct REST API
+    // Create Razorpay Order via Direct REST API with guaranteed Live credentials
     const authHeader = 'Basic ' + Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64');
     const receiptStr = (orderNumber || orderId || `order_${Date.now()}`).substring(0, 40);
 

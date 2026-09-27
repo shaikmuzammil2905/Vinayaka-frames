@@ -1,9 +1,16 @@
 import crypto from 'crypto';
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://fcyjbljpgdggmomlisxf.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjeWpibGpwZ2RnZ21vbWxpc3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NDYxNzUsImV4cCI6MjEwNTMyMjE3NX0.ad7SXUA31dTgKzs91t1yaQAL8BNB8ziMQ1NQ8VWzkWY';
+function cleanVal(val) {
+  if (!val) return '';
+  return String(val).replace(/["'\r\n\t ]/g, '');
+}
 
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET || 'NEi4glvuUVG3eF6wkX8F1fCd';
+const SUPABASE_URL = cleanVal(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) || 'https://fcyjbljpgdggmomlisxf.supabase.co';
+const SUPABASE_KEY = cleanVal(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjeWpibGpwZ2RnZ21vbWxpc3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NDYxNzUsImV4cCI6MjEwNTMyMjE3NX0.ad7SXUA31dTgKzs91t1yaQAL8BNB8ziMQ1NQ8VWzkWY';
+
+const DEFAULT_LIVE_KEY_SECRET = 'NEi4glvuUVG3eF6wkX8F1fCd';
+const envKeySecret = cleanVal(process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET);
+const RAZORPAY_KEY_SECRET = (envKeySecret && envKeySecret.length >= 20) ? envKeySecret : DEFAULT_LIVE_KEY_SECRET;
 
 export default async function handler(req, res) {
   // CORS Headers
