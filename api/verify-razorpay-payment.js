@@ -10,7 +10,11 @@ const SUPABASE_KEY = cleanVal(process.env.SUPABASE_SERVICE_ROLE_KEY || process.e
 
 const DEFAULT_LIVE_KEY_SECRET = 'NEi4glvuUVG3eF6wkX8F1fCd';
 const envKeySecret = cleanVal(process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET);
-const RAZORPAY_KEY_SECRET = (envKeySecret && envKeySecret.length >= 20) ? envKeySecret : DEFAULT_LIVE_KEY_SECRET;
+
+let RAZORPAY_KEY_SECRET = envKeySecret || DEFAULT_LIVE_KEY_SECRET;
+if (!RAZORPAY_KEY_SECRET || RAZORPAY_KEY_SECRET.startsWith('DH9gqOth')) {
+  RAZORPAY_KEY_SECRET = DEFAULT_LIVE_KEY_SECRET;
+}
 
 export default async function handler(req, res) {
   // CORS Headers

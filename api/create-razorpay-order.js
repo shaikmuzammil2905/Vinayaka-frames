@@ -13,8 +13,14 @@ const DEFAULT_LIVE_KEY_SECRET = 'NEi4glvuUVG3eF6wkX8F1fCd';
 const envKeyId = cleanVal(process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || process.env.RAZORPAYKEYID);
 const envKeySecret = cleanVal(process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAYKEYSECRET);
 
-const RAZORPAY_KEY_ID = (envKeyId && envKeyId.startsWith('rzp_live_')) ? envKeyId : DEFAULT_LIVE_KEY_ID;
-const RAZORPAY_KEY_SECRET = (envKeySecret && envKeySecret.length >= 20 && !envKeyId?.startsWith('rzp_test_')) ? envKeySecret : DEFAULT_LIVE_KEY_SECRET;
+let RAZORPAY_KEY_ID = envKeyId || DEFAULT_LIVE_KEY_ID;
+let RAZORPAY_KEY_SECRET = envKeySecret || DEFAULT_LIVE_KEY_SECRET;
+
+// Ensure exact pairing: Live key always pairs with its matching secret
+if (RAZORPAY_KEY_ID === 'rzp_live_Tgy0yqru5LmwIb' || !RAZORPAY_KEY_SECRET || RAZORPAY_KEY_SECRET.startsWith('DH9gqOth')) {
+  RAZORPAY_KEY_ID = DEFAULT_LIVE_KEY_ID;
+  RAZORPAY_KEY_SECRET = DEFAULT_LIVE_KEY_SECRET;
+}
 
 export default async function handler(req, res) {
   // CORS Headers
