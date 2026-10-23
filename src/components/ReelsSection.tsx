@@ -43,6 +43,14 @@ const ReelCard = ({ reel }: { reel: Reel }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
+        ) : reel.videoUrl ? (
+          <video
+            src={reel.videoUrl}
+            preload="metadata"
+            muted
+            playsInline
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+          />
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-gray-800 to-gray-900 flex items-center justify-center">
             <Play className="h-12 w-12 text-white/40" />
@@ -88,16 +96,24 @@ const ReelCard = ({ reel }: { reel: Reel }) => {
                 </button>
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden bg-black" style={{ aspectRatio: '9/16' }}>
+            <div className="rounded-2xl overflow-hidden bg-black shadow-2xl relative" style={{ aspectRatio: '9/16' }}>
               <video
                 ref={videoRef}
                 src={reel.videoUrl}
                 poster={reel.thumbnailUrl}
                 controls
+                autoPlay
+                loop
                 playsInline
                 muted={muted}
-                preload="metadata"
-                className="w-full h-full object-contain"
+                preload="auto"
+                className="w-full h-full object-contain cursor-pointer"
+                onClick={() => {
+                  if (videoRef.current) {
+                    if (videoRef.current.paused) videoRef.current.play();
+                    else videoRef.current.pause();
+                  }
+                }}
               />
             </div>
           </div>

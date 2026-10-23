@@ -13,8 +13,28 @@ export interface CartItem {
     customName?: string;
     customMessage?: string;
     frameStyle?: string;
+    frameId?: string;
+    frameThickness?: string;
     variantId?: string;
     variantName?: string;
+    // Baby birth frame fields
+    gender?: 'Boy baby' | 'Girl baby';
+    babyPhotoUrl?: string;
+    parentsPhotoUrl?: string;
+    babyName?: string;
+    birthDate?: string;
+    birthDay?: string;
+    birthMonth?: string;
+    birthYear?: string;
+    birthTime?: string;
+    birthAmPm?: 'AM' | 'PM';
+    birthWeight?: string;
+    birthWeightUnit?: string;
+    bloodGroup?: string;
+    hospitalName?: string;
+    parentsName?: string;
+    whatsappNumber?: string;
+    [key: string]: any;
   };
   itemPrice: number;
 }
@@ -65,17 +85,20 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addToCart = (newItem: Omit<CartItem, 'id'>) => {
     setCart(prev => {
-      // Create a unique ID based on product ID and selected options
-      const cartItemId = `${newItem.productId}-${newItem.size?.size || 'none'}-${newItem.finishType || 'none'}`;
-      
-      const existingItemIndex = prev.findIndex(item => 
-        item.productId === newItem.productId && 
-        item.size?.size === newItem.size?.size && 
-        item.finishType === newItem.finishType
-      );
+      // Check if item has personalized data
+      const hasPersonalization = newItem.personalizationDetails && 
+        Object.keys(newItem.personalizationDetails).some(k => newItem.personalizationDetails?.[k]);
+
+      // If item has personalization, keep as independent cart item
+      const existingItemIndex = hasPersonalization
+        ? -1
+        : prev.findIndex(item => 
+            item.productId === newItem.productId && 
+            item.size?.size === newItem.size?.size && 
+            item.finishType === newItem.finishType
+          );
 
       if (existingItemIndex > -1) {
-        // If identical item exists, increase quantity
         const newCart = [...prev];
         newCart[existingItemIndex].quantity += newItem.quantity;
         return newCart;

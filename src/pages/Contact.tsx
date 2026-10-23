@@ -16,19 +16,40 @@ export const Contact = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
               <div className="absolute bottom-0 left-0 p-8">
                 <h3 className="text-3xl font-serif font-bold text-white mb-1">K. Anil Nayak</h3>
-                <p className="text-white/80 font-medium">Founder & Visionary</p>
+                <p className="text-white/80 font-medium">Founder</p>
               </div>
             </div>
             <div className="w-full md:w-3/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
-              <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-6">
+              <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
                 <Award className="h-6 w-6" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-text-main mb-6">Crafting Memories Since Inception</h2>
-              <p className="text-text-muted text-lg leading-relaxed mb-6">
-                "Our vision at Vinayak Frames is not just to sell frames, but to preserve the beautiful moments of our customers' lives. We believe every picture tells a story, and a grand frame is the perfect storyteller."
-              </p>
-              <div className="text-text-main font-semibold italic text-xl">
-                - K. Anil Nayak
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-text-main mb-4">Our Story & Commitment</h2>
+              
+              <div className="space-y-4 text-text-muted text-base leading-relaxed">
+                <p>
+                  "I started this business with a simple vision to preserve people's happiest moments with beautiful frames at honest prices. Every frame we create reflects our dedication to quality, trust, and customer happiness."
+                </p>
+                <p className="font-medium text-text-main">
+                  "We don't just make photo frames , we frame emotions, preserve memories, and create treasures for a lifetime."
+                </p>
+
+                <div className="pt-2">
+                  <h4 className="font-serif font-bold text-primary text-lg mb-1">Our Mission</h4>
+                  <p className="text-sm">
+                    To deliver premium quality photo frames at affordable prices, with excellent workmanship, quick delivery, and customer satisfaction.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <h4 className="font-serif font-bold text-primary text-lg mb-1">Our Promise</h4>
+                  <p className="text-sm font-medium text-text-main">
+                    Quality in Every Frame. Trust in Every Deal. Memories for a Lifetime.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-text-main font-semibold italic text-lg mt-6">
+                - K. Anil Nayak, Founder
               </div>
             </div>
           </div>

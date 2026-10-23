@@ -2,7 +2,39 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
-import { Search, Filter, ChevronDown, ChevronUp, X, Loader2, Package, Eye, Clock, CheckCircle, Truck, XCircle, ArrowUpDown } from 'lucide-react';
+import { 
+  Search, Filter, ChevronDown, ChevronUp, X, Loader2, Package, Eye, Clock, 
+  CheckCircle, Truck, XCircle, ArrowUpDown, Download, ExternalLink, Image as ImageIcon, 
+  Sparkles, FolderDown, MessageCircle, Heart 
+} from 'lucide-react';
+
+const downloadImageFile = async (url: string, filename: string) => {
+  try {
+    toast.loading('Downloading image...', { id: 'download-img' });
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) throw new Error('Fetch failed');
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+    toast.success('Downloaded!', { id: 'download-img' });
+  } catch (err) {
+    console.warn('Direct fetch download failed, fallback to anchor', err);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.dismiss('download-img');
+  }
+};
 
 const ORDER_STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const PAYMENT_STATUSES = ['Pending', 'Paid', 'Failed', 'Refunded'];
@@ -371,6 +403,203 @@ export const AdminOrders = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Custom Personalization Details (Master Prompt 4 & Reference Image image copy 60.png) */}
+              {(() => {
+                const itemsWithDetails = selectedOrder.order_items?.filter((it: any) => 
+                  it.personalization_details && Object.keys(it.personalization_details).length > 0
+                ) || [];
+
+                if (itemsWithDetails.length === 0) return null;
+
+                return (
+                  <div className="border-t border-gray-100 pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4 text-[#FF6B00]" />
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                        Custom Personalization Details
+                      </h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      {itemsWithDetails.map((item: any) => {
+                        const p = item.personalization_details || {};
+                        const isBaby = p.gender || p.babyName || p.babyPhotoUrl || p.parentsPhotoUrl;
+
+                        return (
+                          <div key={item.id} className="bg-amber-50/40 border border-amber-200/80 rounded-xl p-4">
+                            <div className="flex items-center justify-between pb-2 mb-3 border-b border-amber-200/60">
+                              <span className="font-bold text-gray-900 text-sm">{item.product_name}</span>
+                              <span className="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
+                                {item.size || p.size || 'Standard'} • Qty: {item.quantity}
+                              </span>
+                            </div>
+
+                            {isBaby ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs md:text-sm">
+                                <div><span className="text-gray-500 font-medium">Gender:</span> <span className="font-semibold text-gray-900 ml-1">{p.gender || 'N/A'}</span></div>
+                                <div><span className="text-gray-500 font-medium">Baby Name:</span> <span className="font-bold text-primary ml-1 text-sm md:text-base">{p.babyName || 'N/A'}</span></div>
+                                <div><span className="text-gray-500 font-medium">Birth Date:</span> <span className="font-semibold text-gray-900 ml-1">{p.birthDate || (p.birthDay ? `${p.birthDay} ${p.birthMonth} ${p.birthYear}` : 'N/A')}</span></div>
+                                <div><span className="text-gray-500 font-medium">Birth Time:</span> <span className="font-semibold text-gray-900 ml-1">{p.birthTime ? `${p.birthTime} ${p.birthAmPm || ''}` : 'N/A'}</span></div>
+                                <div><span className="text-gray-500 font-medium">Birth Weight:</span> <span className="font-semibold text-gray-900 ml-1">{p.birthWeight ? `${p.birthWeight} ${p.birthWeightUnit || 'kg'}` : 'N/A'}</span></div>
+                                <div><span className="text-gray-500 font-medium">Blood Group:</span> <span className="font-semibold text-gray-900 ml-1">{p.bloodGroup || 'N/A'}</span></div>
+                                <div className="sm:col-span-2"><span className="text-gray-500 font-medium">Hospital Name:</span> <span className="font-semibold text-gray-900 ml-1">{p.hospitalName || 'N/A'}</span></div>
+                                <div className="sm:col-span-2"><span className="text-gray-500 font-medium">Parents Name:</span> <span className="font-semibold text-gray-900 ml-1">{p.parentsName || 'N/A'}</span></div>
+                                {p.frameStyle && (
+                                  <div><span className="text-gray-500 font-medium">Frame Style:</span> <span className="font-semibold text-primary ml-1">{p.frameStyle} {p.frameThickness ? `(${p.frameThickness})` : ''}</span></div>
+                                )}
+                                {p.whatsappNumber && (
+                                  <div className="sm:col-span-2 flex items-center gap-2 mt-1 pt-2 border-t border-amber-200/60">
+                                    <span className="text-gray-500 font-medium">WhatsApp:</span> 
+                                    <span className="font-semibold text-gray-900">{p.whatsappNumber}</span>
+                                    <a 
+                                      href={`https://wa.me/${p.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, regarding your Vinayaka Frames Order ${selectedOrder.order_number} for ${p.babyName || 'Baby Birth Frame'}, we are sharing the softcopy preview for your confirmation.`)}`} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 text-xs bg-green-600 text-white px-2 py-0.5 rounded-md hover:bg-green-700 transition-colors ml-auto font-medium"
+                                    >
+                                      <MessageCircle className="w-3.5 h-3.5" />
+                                      Send Softcopy Confirmation
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="space-y-1.5 text-xs md:text-sm">
+                                {p.customName && <div><span className="text-gray-500 font-medium">Custom Name:</span> <span className="font-semibold text-gray-900 ml-1">{p.customName}</span></div>}
+                                {p.customMessage && <div><span className="text-gray-500 font-medium">Custom Message:</span> <span className="font-medium text-gray-800 ml-1 italic">"{p.customMessage}"</span></div>}
+                                {p.frameStyle && <div><span className="text-gray-500 font-medium">Frame Style:</span> <span className="font-semibold text-primary ml-1">{p.frameStyle}</span></div>}
+                                {Object.entries(p)
+                                  .filter(([k]) => !['customName', 'customMessage', 'frameStyle', 'photoUrl', 'photoUrls', 'babyPhotoUrl', 'parentsPhotoUrl'].includes(k))
+                                  .map(([k, v]) => (
+                                    <div key={k}>
+                                      <span className="text-gray-500 font-medium capitalize">{k.replace(/_/g, ' ')}:</span> 
+                                      <span className="font-semibold text-gray-900 ml-1">{String(v)}</span>
+                                    </div>
+                                  ))
+                                }
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Customer Uploaded Photos (Master Prompt 4 & Reference Image image copy 60.png) */}
+              {(() => {
+                const photos: { label: string; url: string; orderItemName: string }[] = [];
+                
+                selectedOrder.order_items?.forEach((item: any) => {
+                  const p = item.personalization_details || {};
+                  if (p.babyPhotoUrl && p.babyPhotoUrl !== 'uploaded-temp-url') {
+                    photos.push({ label: 'Baby Photo', url: p.babyPhotoUrl, orderItemName: item.product_name });
+                  }
+                  if (p.parentsPhotoUrl && p.parentsPhotoUrl !== 'uploaded-temp-url') {
+                    photos.push({ label: 'Parents Photo', url: p.parentsPhotoUrl, orderItemName: item.product_name });
+                  }
+                  if (p.photoUrl && p.photoUrl !== 'uploaded-temp-url' && !p.babyPhotoUrl) {
+                    photos.push({ label: 'Customer Photo', url: p.photoUrl, orderItemName: item.product_name });
+                  }
+                  if (Array.isArray(p.photoUrls)) {
+                    p.photoUrls.forEach((u: string, idx: number) => {
+                      if (u && u !== 'uploaded-temp-url') {
+                        photos.push({ label: `Uploaded Photo ${idx + 1}`, url: u, orderItemName: item.product_name });
+                      }
+                    });
+                  }
+                });
+
+                if (photos.length === 0) return null;
+
+                const downloadAll = async () => {
+                  for (let i = 0; i < photos.length; i++) {
+                    const ph = photos[i];
+                    const cleanLabel = ph.label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    const fname = `${selectedOrder.order_number}-${cleanLabel}.jpg`;
+                    await downloadImageFile(ph.url, fname);
+                    if (i < photos.length - 1) {
+                      await new Promise(r => setTimeout(r, 600));
+                    }
+                  }
+                };
+
+                return (
+                  <div className="border-t border-gray-100 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                          Customer Uploaded Photos ({photos.length})
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={downloadAll}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF6B00] text-white rounded-lg hover:bg-[#e05e00] transition-colors text-xs font-bold shadow-sm"
+                      >
+                        <FolderDown className="w-3.5 h-3.5" />
+                        Download All Photos
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {photos.map((ph, idx) => {
+                        const cleanLabel = ph.label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                        const filename = `${selectedOrder.order_number}-${cleanLabel}.jpg`;
+
+                        return (
+                          <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-bold text-gray-900 text-xs">{ph.label}</span>
+                                <span className="text-[10px] text-gray-500 truncate max-w-[120px]">{ph.orderItemName}</span>
+                              </div>
+                              <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-white border border-gray-200 mb-3 group">
+                                <img 
+                                  src={ph.url} 
+                                  alt={ph.label} 
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" 
+                                />
+                                <a
+                                  href={ph.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 text-white text-xs font-semibold"
+                                >
+                                  <ExternalLink className="w-4 h-4" /> Full View
+                                </a>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={ph.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-gray-500" />
+                                View Original
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => downloadImageFile(ph.url, filename)}
+                                className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-[#FF6B00] text-white rounded-lg text-xs font-bold hover:bg-[#e05e00] transition-colors shadow-sm"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                Download Photo
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Totals */}
               <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">

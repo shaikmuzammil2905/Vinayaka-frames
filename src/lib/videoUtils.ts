@@ -27,6 +27,14 @@ const ALLOWED_VIDEO_TYPES = [
  */
 export const captureVideoThumbnail = (file: File, atTime: number = 1): Promise<Blob> => {
   return new Promise((resolve, reject) => {
+    let finished = false;
+    const timer = setTimeout(() => {
+      if (!finished) {
+        finished = true;
+        reject(new Error('Video thumbnail generation timed out after 3s'));
+      }
+    }, 3000);
+
     try {
       const video = document.createElement('video');
       video.preload = 'metadata';
@@ -36,16 +44,20 @@ export const captureVideoThumbnail = (file: File, atTime: number = 1): Promise<B
       video.src = objectUrl;
 
       const cleanUp = () => {
+        clearTimeout(timer);
         URL.revokeObjectURL(objectUrl);
         video.remove();
       };
 
       video.onloadedmetadata = () => {
+        if (finished) return;
         const targetTime = Math.min(atTime, Math.max(0, video.duration / 2));
         video.currentTime = targetTime;
       };
 
       video.onseeked = () => {
+        if (finished) return;
+        finished = true;
         try {
           const canvas = document.createElement('canvas');
           canvas.width = video.videoWidth || 720;
@@ -72,10 +84,13 @@ export const captureVideoThumbnail = (file: File, atTime: number = 1): Promise<B
       };
 
       video.onerror = () => {
+        if (finished) return;
+        finished = true;
         cleanUp();
         reject(new Error('Failed to load video file for thumbnail generation'));
       };
     } catch (e) {
+      clearTimeout(timer);
       reject(e);
     }
   });
@@ -152,6 +167,15 @@ export const uploadVideoHelper = async (
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData?.session?.access_token || supabaseKey;
 
+  let resolvedContentType = file.type || '';
+  if (!resolvedContentType || resolvedContentType === 'application/octet-stream') {
+    if (fileExt === 'mov') resolvedContentType = 'video/quicktime';
+    else if (fileExt === 'webm') resolvedContentType = 'video/webm';
+    else if (fileExt === 'ogg') resolvedContentType = 'video/ogg';
+    else if (fileExt === '3gp') resolvedContentType = 'video/3gpp';
+    else resolvedContentType = 'video/mp4';
+  }
+
   const uploadViaXHR = (): Promise<string> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -204,7 +228,7 @@ export const uploadVideoHelper = async (
       xhr.open('POST', uploadUrl, true);
       xhr.setRequestHeader('apikey', supabaseKey);
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+      xhr.setRequestHeader('Content-Type', resolvedContentType);
       xhr.setRequestHeader('x-upsert', 'true');
       xhr.timeout = 180000; // 3 minutes timeout for large files
 
@@ -227,7 +251,7 @@ export const uploadVideoHelper = async (
     try {
       const { data, error } = await supabase.storage.from(bucketName).upload(fileName, file, {
         upsert: true,
-        contentType: file.type || 'video/mp4',
+        contentType: resolvedContentType,
       });
       if (error) throw error;
       if (data) {

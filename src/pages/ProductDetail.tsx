@@ -4,6 +4,8 @@ import { FinishType, SizeOption, LED_FRAME_SIZES, Product } from '../data/mockDa
 import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { Star, ShieldCheck, Truck, Gift, Image as ImageIcon, Check, Upload } from 'lucide-react';
+import { BabyBirthFrameCustomizer, BabyPersonalizationData } from '../components/BabyBirthFrameCustomizer';
+import toast from 'react-hot-toast';
 
 import frame1 from '../assets/20260918_162125.jpg.jpeg';
 import frame2 from '../assets/20260918_162341.jpg.jpeg';
@@ -57,6 +59,19 @@ export const ProductDetail = () => {
       if (active) {
         if (data) {
           setProduct(data);
+          // Fetch dynamic product sizes from DB to ensure freshest prices/sizes
+          api.getProductSizes(data.id).then(dbSizes => {
+            if (active && dbSizes && dbSizes.length > 0) {
+              const mappedSizes: SizeOption[] = dbSizes.map(s => ({
+                size: s.size,
+                price: Number(s.price),
+                isLed: !!s.is_led
+              }));
+              setProduct(prev => prev ? { ...prev, sizes: mappedSizes } : prev);
+              setSelectedSize(prev => prev || mappedSizes[0]);
+            }
+          }).catch(console.warn);
+
           // Fetch dynamic personalization fields
           api.getPersonalizationFields(data.id).then(fields => {
             if (active) setPersonalizationFields(fields);
@@ -79,10 +94,30 @@ export const ProductDetail = () => {
   
   const [customName, setCustomName] = useState('');
   const [customMessage, setCustomMessage] = useState('');
-  const [selectedFrameStyle, setSelectedFrameStyle] = useState<number | null>(null);
+  const [selectedFrameStyle, setSelectedFrameStyle] = useState<string | number | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic DB Frame Styles & Baby Customization
+  const [dbFrames, setDbFrames] = useState<any[]>([]);
+  const [babyCustomization, setBabyCustomization] = useState<BabyPersonalizationData | null>(null);
+  const [babyFormValid, setBabyFormValid] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    api.getFrameStyles().then(data => {
+      if (active && data && data.length > 0) {
+        setDbFrames(data);
+      }
+    }).catch(console.warn);
+    return () => { active = false; };
+  }, []);
+
+  const isBabyBirthFrame = 
+    product?.slug === 'personalized-baby-birth-frame' || 
+    product?.name?.toLowerCase().includes('baby birth') ||
+    product?.category?.toLowerCase().includes('baby');
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -91,11 +126,11 @@ export const ProductDetail = () => {
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-  }
+  };
 
   const onTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
-  }
+  };
 
   const onTouchEndHandler = () => {
     if (!touchStart || !touchEnd) return;
@@ -109,11 +144,10 @@ export const ProductDetail = () => {
     if (isRightSwipe && product?.images && product.images.length > 1) {
       setMainImageIndex(prev => (prev - 1 + product.images!.length) % product.images!.length);
     }
-  }
+  };
   
   const getFrameThickness = (sizeStr?: string) => {
     if (!sizeStr) return '1 Inch';
-    // Remove all whitespace characters, non-breaking spaces
     const s = sizeStr.toLowerCase().replace(/[\s\u00A0]/g, '');
     if (s.includes('16x24') || s.includes('20x30') || s.includes('24x36') || s.includes('16×24') || s.includes('20×30') || s.includes('24×36')) {
       return '1.5 Inch';
@@ -122,7 +156,12 @@ export const ProductDetail = () => {
   };
 
   const currentThickness = getFrameThickness(selectedSize?.size);
-  const activeFrames = currentThickness === '1.5 Inch' ? frames15Inch : frames1Inch;
+  const matchingDbFrames = dbFrames.filter(f => f.thickness === currentThickness);
+  const activeFrames = matchingDbFrames.length > 0 
+    ? matchingDbFrames 
+    : (currentThickness === '1.5 Inch' 
+        ? frames15Inch.map(f => ({ id: String(f.id), name: f.name, imageUrl: f.img, thickness: '1.5 Inch' }))
+        : frames1Inch.map(f => ({ id: String(f.id), name: f.name, imageUrl: f.img, thickness: '1 Inch' })));
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -151,57 +190,14 @@ export const ProductDetail = () => {
     }
   }, [product]);
 
-  // Reset frame selection if it doesn't match the current thickness category
+  // Reset frame selection if it doesn't match the current thickness category, or auto-select first
   useEffect(() => {
-    if (selectedFrameStyle !== null) {
-      if (!activeFrames.find(f => f.id === selectedFrameStyle)) {
-        setSelectedFrameStyle(null);
+    if (activeFrames.length > 0) {
+      if (!selectedFrameStyle || !activeFrames.find(f => String(f.id) === String(selectedFrameStyle))) {
+        setSelectedFrameStyle(activeFrames[0].id);
       }
     }
-  }, [currentThickness]); // Depends only on thickness changing
-
-  if (loading) {
-    return (
-      <div className="bg-white min-h-screen pb-28">
-        <div className="bg-gray-50 py-3 border-b border-gray-100">
-          <div className="container-custom">
-            <div className="h-4 bg-gray-200 rounded w-48 animate-pulse" />
-          </div>
-        </div>
-        <div className="container-custom py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            <div className="space-y-4">
-              <div className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
-              <div className="flex gap-3">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-20 h-20 bg-gray-100 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="h-8 bg-gray-200 rounded w-3/4 animate-pulse" />
-              <div className="h-6 bg-gray-200 rounded w-1/4 animate-pulse" />
-              <div className="h-24 bg-gray-100 rounded-xl animate-pulse" />
-              <div className="h-12 bg-gray-200 rounded-xl animate-pulse" />
-              <div className="h-12 bg-gray-200 rounded-xl animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="container-custom py-24 text-center">
-        <h2 className="text-2xl font-serif font-bold text-gray-800 mb-2">Product Not Found</h2>
-        <p className="text-gray-500 mb-6">The frame or gift you are looking for may have been moved or is unavailable.</p>
-        <button onClick={() => navigate('/categories')} className="inline-block bg-primary text-white font-medium px-6 py-2.5 rounded-full hover:bg-primary-dark transition-colors">
-          Browse All Products
-        </button>
-      </div>
-    );
-  }
+  }, [currentThickness, activeFrames, selectedFrameStyle]);
 
   const getPriceForSize = (sizeOption: SizeOption, finish?: FinishType) => {
     const normalizeSize = (s: string) => s.replace(/[\s\u00A0]/g, '');
@@ -212,18 +208,51 @@ export const ProductDetail = () => {
     return sizeOption.price;
   };
 
-  const selectedVariant = product.variants?.find(v => v.id === selectedVariantId);
-  const currentPrice = (selectedSize ? getPriceForSize(selectedSize, selectedFinish) : product.price) + (selectedVariant?.priceAdjustment || 0);
+  const selectedVariant = product?.variants?.find(v => v.id === selectedVariantId);
+  const currentPrice = (selectedSize ? getPriceForSize(selectedSize, selectedFinish) : (product?.price || 0)) + (selectedVariant?.priceAdjustment || 0);
 
   const handleAddToCart = () => {
-    const activeFrameObj = [...frames1Inch, ...frames15Inch].find(f => f.id === selectedFrameStyle);
+    if (!product) return;
+    const activeFrameObj = activeFrames.find(f => String(f.id) === String(selectedFrameStyle)) || activeFrames[0];
+
+    if (isBabyBirthFrame) {
+      if (!babyCustomization || !babyFormValid) {
+        toast.error('Please complete all required baby birth details and upload both photos.');
+        return;
+      }
+    }
+
+    const framePrice = activeFrameObj?.additionalPrice || 0;
+    const finalItemPrice = currentPrice + framePrice;
+
     addToCart({
       productId: product.id,
       product,
       quantity,
       size: selectedSize,
       finishType: selectedFinish,
-      personalizationDetails: {
+      personalizationDetails: isBabyBirthFrame && babyCustomization ? {
+        gender: babyCustomization.gender,
+        babyPhotoUrl: babyCustomization.babyPhotoUrl,
+        parentsPhotoUrl: babyCustomization.parentsPhotoUrl,
+        babyName: babyCustomization.babyName,
+        birthDate: `${babyCustomization.birthDay} ${babyCustomization.birthMonth} ${babyCustomization.birthYear}`,
+        birthDay: babyCustomization.birthDay,
+        birthMonth: babyCustomization.birthMonth,
+        birthYear: babyCustomization.birthYear,
+        birthTime: babyCustomization.birthTime,
+        birthAmPm: babyCustomization.birthAmPm,
+        birthWeight: babyCustomization.birthWeight,
+        birthWeightUnit: 'kg',
+        bloodGroup: babyCustomization.bloodGroup,
+        hospitalName: babyCustomization.hospitalName,
+        parentsName: babyCustomization.parentsName,
+        whatsappNumber: babyCustomization.whatsappNumber,
+        frameStyle: activeFrameObj ? activeFrameObj.name : 'Classic Wood',
+        frameId: activeFrameObj?.id,
+        frameThickness: currentThickness,
+        size: selectedSize?.size,
+      } : {
         photoUrl: photoUploaded ? 'uploaded-temp-url' : undefined,
         customName: customName || undefined,
         customMessage: customMessage || undefined,
@@ -231,8 +260,10 @@ export const ProductDetail = () => {
         variantId: selectedVariantId || undefined,
         variantName: selectedVariant?.name,
       },
-      itemPrice: currentPrice,
+      itemPrice: finalItemPrice,
     });
+
+    toast.success('Added to cart!');
   };
 
   const handleBuyNow = () => {
@@ -241,6 +272,7 @@ export const ProductDetail = () => {
   };
 
   const handleWhatsApp = () => {
+    if (!product) return;
     const activeFrameObj = [...frames1Inch, ...frames15Inch].find(f => f.id === selectedFrameStyle);
     const frameName = activeFrameObj ? activeFrameObj.name : 'None selected';
     const message = `Hello, I want to enquire/order this product.
@@ -256,6 +288,25 @@ Price: ₹${currentPrice.toLocaleString('en-IN')}
 Please confirm availability and order details.`;
     window.open(`https://wa.me/919398277441?text=${encodeURIComponent(message)}`, '_blank');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white text-center">
+        <h2 className="text-2xl font-bold mb-4 text-text-main">Product Not Found</h2>
+        <button onClick={() => navigate('/products')} className="px-6 py-2.5 bg-primary text-white rounded-xl font-medium shadow-sm hover:bg-primary-hover">
+          Back to Products
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white min-h-screen pb-28">
@@ -367,24 +418,36 @@ Please confirm availability and order details.`;
               </div>
             )}
 
-            {/* Selectors */}
+            {/* Select Size (Reference Image: 2-column grid with orange active state) */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-text-main mb-3">Select Size</h3>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes.map((s) => (
-                    <button
-                      key={s.size}
-                      onClick={() => setSelectedSize(s)}
-                      className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-                        selectedSize?.size === s.size 
-                          ? 'border-primary bg-primary text-white font-medium' 
-                          : 'border-gray-200 text-text-main hover:border-primary'
-                      }`}
-                    >
-                      {s.size} — ₹{getPriceForSize(s, selectedFinish)}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-gray-900">Select Size</h3>
+                  {selectedSize && (
+                    <span className="text-xs text-primary font-medium">Selected: {selectedSize.size}</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {product.sizes.map((s) => {
+                    const isSelected = selectedSize?.size === s.size;
+                    const price = getPriceForSize(s, selectedFinish);
+                    return (
+                      <button
+                        key={s.size}
+                        type="button"
+                        onClick={() => setSelectedSize(s)}
+                        className={`w-full py-3 px-3 sm:px-4 rounded-xl text-center transition-all duration-150 flex items-center justify-center font-medium ${
+                          isSelected
+                            ? 'bg-[#FF6B00] text-white font-bold shadow-md ring-2 ring-[#FF6B00]/30 border-2 border-[#FF6B00]'
+                            : 'bg-white text-gray-800 border border-gray-300 hover:border-[#FF6B00]/60 hover:bg-orange-50/20'
+                        }`}
+                      >
+                        <span className="text-sm md:text-base tracking-wide">
+                          {s.size} — ₹{price.toLocaleString('en-IN')}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -396,6 +459,7 @@ Please confirm availability and order details.`;
                   {product.finishTypes.map((f) => (
                     <button
                       key={f}
+                      type="button"
                       onClick={() => setSelectedFinish(f)}
                       className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
                         selectedFinish === f 
@@ -410,237 +474,269 @@ Please confirm availability and order details.`;
               </div>
             )}
 
-            {/* Frame Style Selection */}
+            {/* Frame Style Selection (Reference Image: 2-column on mobile, responsive grid, thickness badge, dark gradient label) */}
             <div className="mb-8 w-full">
-              <div className="flex items-baseline gap-4 mb-3">
-                <h3 className="text-sm font-medium text-text-main">Select Frame Style</h3>
-                <span className="text-sm font-bold text-primary">{currentThickness}</span>
+              <div className="flex items-baseline gap-3 mb-3">
+                <h3 className="text-base font-bold text-gray-900">Select Frame Style</h3>
+                <span className="text-xs font-bold text-[#FF6B00] bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                  {currentThickness}
+                </span>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {activeFrames.map((frame) => (
-                  <div 
-                    key={frame.id}
-                    onClick={() => setSelectedFrameStyle(frame.id)}
-                    className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group ${
-                      selectedFrameStyle === frame.id ? 'border-primary shadow-md scale-[1.02]' : 'border-gray-200 hover:border-primary/50 hover:scale-[1.02]'
-                    }`}
-                  >
-                    <div className="aspect-square relative">
-                      <img src={frame.img} alt={frame.name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
-                    </div>
-                    
-                    {selectedFrameStyle === frame.id && (
-                      <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-sm z-10">
-                        <Check className="h-3 w-3" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                {activeFrames.map((frame) => {
+                  const frameImg = frame.imageUrl || frame.img;
+                  const isSelected = String(selectedFrameStyle) === String(frame.id) || selectedFrameStyle === frame.id;
+                  return (
+                    <div 
+                      key={frame.id}
+                      onClick={() => setSelectedFrameStyle(frame.id)}
+                      className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-200 group ${
+                        isSelected 
+                          ? 'border-[#FF6B00] shadow-md ring-2 ring-[#FF6B00]/20 scale-[1.02]' 
+                          : 'border-gray-200 hover:border-[#FF6B00]/50 hover:scale-[1.02]'
+                      }`}
+                    >
+                      <div className="aspect-square relative bg-gray-100">
+                        {frameImg ? (
+                          <img src={frameImg} alt={frame.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Image</div>
+                        )}
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                       </div>
-                    )}
-                    
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                      <p className="text-white font-medium text-[10px] md:text-xs text-center">{frame.name}</p>
+                      
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 bg-[#FF6B00] text-white p-1 rounded-full shadow-md z-10">
+                          <Check className="h-3 w-3 stroke-[3]" />
+                        </div>
+                      )}
+                      
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent pt-4 pb-2 px-2">
+                        <p className="text-white font-semibold text-xs md:text-sm text-center truncate drop-shadow-sm">{frame.name}</p>
+                        {frame.additionalPrice ? (
+                          <p className="text-orange-300 text-[10px] text-center font-medium">+₹{frame.additionalPrice}</p>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            {/* Dynamic Personalization Fields (from DB) */}
-            {personalizationFields.length > 0 && (
-              <div className="bg-gray-50 p-5 rounded-2xl mb-8 border border-gray-100">
-                <h3 className="font-serif font-semibold text-lg mb-5">Personalization Details</h3>
-                <div className="space-y-5">
-                  {personalizationFields.map((field) => {
-                    const fieldId = `pf-${field.id}`;
-                    const isImageField = field.fieldType === 'single_image' || field.fieldType === 'multiple_image';
-                    const currentFiles = dynamicFileInputs[field.id] || [];
-                    
-                    return (
-                      <div key={field.id}>
-                        <label htmlFor={fieldId} className="block text-sm font-medium text-text-main mb-1.5">
-                          {field.fieldLabel}
-                          {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-                        </label>
-                        
-                        {field.fieldType === 'text' && (
-                          <input
-                            id={fieldId}
-                            type="text"
-                            placeholder={field.placeholder || ''}
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            required={field.isRequired}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          />
-                        )}
-                        
-                        {field.fieldType === 'textarea' && (
-                          <textarea
-                            id={fieldId}
-                            placeholder={field.placeholder || ''}
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            rows={3}
-                            required={field.isRequired}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                          />
-                        )}
-
-                        {field.fieldType === 'date' && (
-                          <input
-                            id={fieldId}
-                            type="date"
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            required={field.isRequired}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          />
-                        )}
-                        
-                        {field.fieldType === 'phone' && (
-                          <input
-                            id={fieldId}
-                            type="tel"
-                            placeholder={field.placeholder || '+91 XXXXX XXXXX'}
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            required={field.isRequired}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          />
-                        )}
-                        
-                        {field.fieldType === 'number' && (
-                          <input
-                            id={fieldId}
-                            type="number"
-                            placeholder={field.placeholder || ''}
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            required={field.isRequired}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          />
-                        )}
-
-                        {field.fieldType === 'dropdown' && (
-                          <select
-                            id={fieldId}
-                            value={dynamicFieldValues[field.id] || ''}
-                            onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            required={field.isRequired}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
-                          >
-                            <option value="">{field.placeholder || '-- Select option --'}</option>
-                            {(field.options || []).map((opt: string) => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </select>
-                        )}
-
-                        {field.fieldType === 'checkbox' && (
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              id={fieldId}
-                              type="checkbox"
-                              checked={!!dynamicFieldValues[field.id]}
-                              onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked }))}
-                              className="w-5 h-5 rounded text-primary focus:ring-primary"
-                            />
-                            <span className="text-sm text-text-muted">{field.placeholder || 'Yes, I confirm'}</span>
-                          </label>
-                        )}
-                        
-                        {(field.fieldType === 'single_image' || field.fieldType === 'multiple_image') && (
-                          <div>
-                            <input
-                              id={fieldId}
-                              type="file"
-                              accept="image/*"
-                              multiple={field.fieldType === 'multiple_image'}
-                              required={field.isRequired && currentFiles.length === 0}
-                              onChange={e => {
-                                const files = Array.from(e.target.files || []);
-                                setDynamicFileInputs(prev => ({ ...prev, [field.id]: files }));
-                              }}
-                              className="hidden"
-                            />
-                            <label
-                              htmlFor={fieldId}
-                              className={`flex flex-col items-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${
-                                currentFiles.length > 0 ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'
-                              }`}
-                            >
-                              <ImageIcon className={`h-8 w-8 ${currentFiles.length > 0 ? 'text-green-500' : 'text-gray-400'}`} />
-                              {currentFiles.length > 0 ? (
-                                <div className="text-center">
-                                  <p className="text-sm font-medium text-green-700">
-                                    {currentFiles.length} file{currentFiles.length > 1 ? 's' : ''} selected
-                                  </p>
-                                  <p className="text-xs text-green-600">{currentFiles.map(f => f.name).join(', ')}</p>
-                                </div>
-                              ) : (
-                                <p className="text-sm font-medium text-gray-600">
-                                  {field.placeholder || `Click to upload ${field.fieldType === 'multiple_image' ? 'photos' : 'photo'}`}
-                                </p>
-                              )}
-                            </label>
-                          </div>
-                        )}
-                        
-                        {field.helpText && (
-                          <p className="text-xs text-text-muted mt-1">{field.helpText}</p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Baby Birth Frame Personalization Form (Master Prompt 1 & Reference Video) */}
+            {isBabyBirthFrame ? (
+              <div className="mb-8">
+                <BabyBirthFrameCustomizer
+                  selectedFrameName={activeFrames.find(f => String(f.id) === String(selectedFrameStyle))?.name || 'Classic Wood'}
+                  selectedFrameImg={activeFrames.find(f => String(f.id) === String(selectedFrameStyle))?.imageUrl || activeFrames.find(f => String(f.id) === String(selectedFrameStyle))?.img}
+                  selectedSizeLabel={selectedSize?.size || '8 × 12'}
+                  onChange={(data, isValid) => {
+                    setBabyCustomization(data);
+                    setBabyFormValid(isValid);
+                  }}
+                />
               </div>
-            )}
+            ) : (
+              <>
+                {/* Dynamic Personalization Fields (from DB) */}
+                {personalizationFields.length > 0 && (
+                  <div className="bg-gray-50 p-5 rounded-2xl mb-8 border border-gray-100">
+                    <h3 className="font-serif font-semibold text-lg mb-5">Personalization Details</h3>
+                    <div className="space-y-5">
+                      {personalizationFields.map((field) => {
+                        const fieldId = `pf-${field.id}`;
+                        const isImageField = field.fieldType === 'single_image' || field.fieldType === 'multiple_image';
+                        const currentFiles = dynamicFileInputs[field.id] || [];
+                        
+                        return (
+                          <div key={field.id}>
+                            <label htmlFor={fieldId} className="block text-sm font-medium text-text-main mb-1.5">
+                              {field.fieldLabel}
+                              {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            
+                            {field.fieldType === 'text' && (
+                              <input
+                                id={fieldId}
+                                type="text"
+                                placeholder={field.placeholder || ''}
+                                value={dynamicFieldValues[field.id] || ''}
+                                onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                required={field.isRequired}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              />
+                            )}
+                            
+                            {field.fieldType === 'textarea' && (
+                              <textarea
+                                id={fieldId}
+                                placeholder={field.placeholder || ''}
+                                value={dynamicFieldValues[field.id] || ''}
+                                onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                rows={3}
+                                required={field.isRequired}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                              />
+                            )}
 
-            {/* Fallback static personalization (when no dynamic fields configured) */}
-            {personalizationFields.length === 0 && product.customizable && product.personalization && (
-              <div className="bg-gray-50 p-5 rounded-2xl mb-8 border border-gray-100">
-                <h3 className="font-serif font-semibold text-lg mb-4">Personalization Details</h3>
-                
-                {product.personalization.photoUpload && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-text-main mb-2">Upload Photo (JPG/PNG)</label>
-                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-                    <div
-                      className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${photoUploaded ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'}`}
-                      onClick={handlePhotoClick}
-                    >
-                      <ImageIcon className={`h-8 w-8 mx-auto mb-2 ${photoUploaded ? 'text-green-500' : 'text-gray-400'}`} />
-                      <p className="text-sm font-medium">{photoUploaded ? 'Photo Uploaded Successfully!' : 'Click to Upload Photo'}</p>
+                            {field.fieldType === 'date' && (
+                              <input
+                                id={fieldId}
+                                type="date"
+                                value={dynamicFieldValues[field.id] || ''}
+                                onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                required={field.isRequired}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              />
+                            )}
+                            
+                            {field.fieldType === 'phone' && (
+                              <input
+                                id={fieldId}
+                                type="tel"
+                                placeholder={field.placeholder || '+91 XXXXX XXXXX'}
+                                value={dynamicFieldValues[field.id] || ''}
+                                onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                required={field.isRequired}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              />
+                            )}
+                            
+                            {field.fieldType === 'number' && (
+                              <input
+                                id={fieldId}
+                                type="number"
+                                placeholder={field.placeholder || ''}
+                                value={dynamicFieldValues[field.id] || ''}
+                                onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                required={field.isRequired}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              />
+                            )}
+
+                            {field.fieldType === 'dropdown' && (
+                              <select
+                                id={fieldId}
+                                value={dynamicFieldValues[field.id] || ''}
+                                onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                required={field.isRequired}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                              >
+                                <option value="">{field.placeholder || '-- Select option --'}</option>
+                                {(field.options || []).map((opt: string) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            )}
+
+                            {field.fieldType === 'checkbox' && (
+                              <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                  id={fieldId}
+                                  type="checkbox"
+                                  checked={!!dynamicFieldValues[field.id]}
+                                  onChange={e => setDynamicFieldValues(prev => ({ ...prev, [field.id]: e.target.checked }))}
+                                  className="w-5 h-5 rounded text-primary focus:ring-primary"
+                                />
+                                <span className="text-sm text-text-muted">{field.placeholder || 'Yes, I confirm'}</span>
+                              </label>
+                            )}
+                            
+                            {(field.fieldType === 'single_image' || field.fieldType === 'multiple_image') && (
+                              <div>
+                                <input
+                                  id={fieldId}
+                                  type="file"
+                                  accept="image/*"
+                                  multiple={field.fieldType === 'multiple_image'}
+                                  required={field.isRequired && currentFiles.length === 0}
+                                  onChange={e => {
+                                    const files = Array.from(e.target.files || []);
+                                    setDynamicFileInputs(prev => ({ ...prev, [field.id]: files }));
+                                  }}
+                                  className="hidden"
+                                />
+                                <label
+                                  htmlFor={fieldId}
+                                  className={`flex flex-col items-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${
+                                    currentFiles.length > 0 ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'
+                                  }`}
+                                >
+                                  <ImageIcon className={`h-8 w-8 ${currentFiles.length > 0 ? 'text-green-500' : 'text-gray-400'}`} />
+                                  {currentFiles.length > 0 ? (
+                                    <div className="text-center">
+                                      <p className="text-sm font-medium text-green-700">
+                                        {currentFiles.length} file{currentFiles.length > 1 ? 's' : ''} selected
+                                      </p>
+                                      <p className="text-xs text-green-600">{currentFiles.map(f => f.name).join(', ')}</p>
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm font-medium text-gray-600">
+                                      {field.placeholder || `Click to upload ${field.fieldType === 'multiple_image' ? 'photos' : 'photo'}`}
+                                    </p>
+                                  )}
+                                </label>
+                              </div>
+                            )}
+                            
+                            {field.helpText && (
+                              <p className="text-xs text-text-muted mt-1">{field.helpText}</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
-                
-                {product.personalization.customName && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-text-main mb-2">Custom Name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter name to be printed"
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                    />
+
+                {/* Fallback static personalization (when no dynamic fields configured) */}
+                {personalizationFields.length === 0 && product.customizable && product.personalization && (
+                  <div className="bg-gray-50 p-5 rounded-2xl mb-8 border border-gray-100">
+                    <h3 className="font-serif font-semibold text-lg mb-4">Personalization Details</h3>
+                    
+                    {product.personalization.photoUpload && (
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-text-main mb-2">Upload Photo (JPG/PNG)</label>
+                        <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+                        <div
+                          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${photoUploaded ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary bg-white'}`}
+                          onClick={handlePhotoClick}
+                        >
+                          <ImageIcon className={`h-8 w-8 mx-auto mb-2 ${photoUploaded ? 'text-green-500' : 'text-gray-400'}`} />
+                          <p className="text-sm font-medium">{photoUploaded ? 'Photo Uploaded Successfully!' : 'Click to Upload Photo'}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {product.personalization.customName && (
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-text-main mb-2">Custom Name</label>
+                        <input
+                          type="text"
+                          placeholder="Enter name to be printed"
+                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          value={customName}
+                          onChange={(e) => setCustomName(e.target.value)}
+                        />
+                      </div>
+                    )}
+                    
+                    {product.personalization.customMessage && (
+                      <div>
+                        <label className="block text-sm font-medium text-text-main mb-2">Custom Message</label>
+                        <textarea
+                          placeholder="Enter your special message"
+                          rows={3}
+                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                          value={customMessage}
+                          onChange={(e) => setCustomMessage(e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
-                
-                {product.personalization.customMessage && (
-                  <div>
-                    <label className="block text-sm font-medium text-text-main mb-2">Custom Message</label>
-                    <textarea
-                      placeholder="Enter your special message"
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                      value={customMessage}
-                      onChange={(e) => setCustomMessage(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
+              </>
             )}
 
             {/* Actions */}

@@ -5,6 +5,7 @@ import { Product, SizeOption, FinishType } from '../data/mockData';
 const mapProduct = (dbProduct: any): Product => {
   return {
     id: dbProduct.id,
+    slug: dbProduct.slug,
     name: dbProduct.name,
     category: dbProduct.categories?.name || 'Uncategorized',
     images: dbProduct.product_images?.map((img: any) => img.image_url) || [],
@@ -509,6 +510,237 @@ export const api = {
       displayOrder: f.display_order,
       isActive: f.is_active,
     }));
+  },
+
+  // ============================================================
+  // FRAME STYLES (DYNAMIC DB)
+  // ============================================================
+  async getFrameStyles(thickness?: string) {
+    try {
+      let query = supabase
+        .from('frame_styles')
+        .select('*')
+        .eq('is_active', true)
+        .eq('is_deleted', false)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: true });
+      
+      if (thickness) {
+        query = query.eq('thickness', thickness);
+      }
+
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data.map((f: any) => ({
+          id: f.id,
+          name: f.name,
+          imageUrl: f.image_url,
+          thickness: f.thickness,
+          additionalPrice: Number(f.additional_price) || 0,
+          displayOrder: f.display_order,
+          isActive: f.is_active,
+        }));
+      }
+    } catch {}
+
+    // Fallback to site_settings 'frame_styles'
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'frame_styles')
+        .maybeSingle();
+
+      if (data?.setting_value && Array.isArray(data.setting_value)) {
+        let list = data.setting_value.filter((f: any) => f.isActive !== false);
+        if (thickness) {
+          list = list.filter((f: any) => f.thickness === thickness);
+        }
+        return list;
+      }
+    } catch (e) {
+      console.warn('Fallback frame_styles warning:', e);
+    }
+
+    return [];
+  },
+
+  async getAdminFrameStyles() {
+    try {
+      const { data, error } = await supabase
+        .from('frame_styles')
+        .select('*')
+        .eq('is_deleted', false)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data.map((f: any) => ({
+          id: f.id,
+          name: f.name,
+          imageUrl: f.image_url,
+          thickness: f.thickness,
+          additionalPrice: Number(f.additional_price) || 0,
+          displayOrder: f.display_order,
+          isActive: f.is_active,
+          createdAt: f.created_at,
+        }));
+      }
+    } catch {}
+
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'frame_styles')
+        .maybeSingle();
+
+      if (data?.setting_value && Array.isArray(data.setting_value)) {
+        return data.setting_value;
+      }
+    } catch {}
+
+    return [];
+  },
+
+  async saveFrameStyle(frame: any) {
+    const isNew = !frame.id || String(frame.id).startsWith('temp_') || String(frame.id).startsWith('frame-');
+    const id = isNew ? undefined : frame.id;
+    const payload = {
+      name: frame.name,
+      image_url: frame.imageUrl,
+      thickness: frame.thickness || '1 Inch',
+      additional_price: Number(frame.additionalPrice) || 0,
+      display_order: Number(frame.displayOrder) || 0,
+      is_active: frame.isActive !== false,
+      is_deleted: false,
+    };
+
+    let savedId = id;
+    let savedInTable = false;
+
+    try {
+      if (id) {
+        const { data, error } = await supabase.from('frame_styles').update(payload).eq('id', id).select().single();
+        if (!error && data) {
+          savedId = data.id;
+          savedInTable = true;
+        }
+      } else {
+        const { data, error } = await supabase.from('frame_styles').insert(payload).select().single();
+        if (!error && data) {
+          savedId = data.id;
+          savedInTable = true;
+        }
+      }
+    } catch {}
+
+    // Always sync with site_settings 'frame_styles'
+    try {
+      const { data: stRow } = await supabase.from('site_settings').select('setting_value').eq('setting_key', 'frame_styles').maybeSingle();
+      let currentList = (stRow?.setting_value && Array.isArray(stRow.setting_value)) ? [...stRow.setting_value] : [];
+      const itemToSave = {
+        id: savedId || ('frame-' + Date.now()),
+        name: frame.name,
+        imageUrl: frame.imageUrl,
+        thickness: frame.thickness || '1 Inch',
+        additionalPrice: Number(frame.additionalPrice) || 0,
+        displayOrder: Number(frame.displayOrder) || 0,
+        isActive: frame.isActive !== false,
+        createdAt: frame.createdAt || new Date().toISOString(),
+      };
+
+      const existingIdx = currentList.findIndex((f: any) => f.id === itemToSave.id);
+      if (existingIdx >= 0) {
+        currentList[existingIdx] = itemToSave;
+      } else {
+        currentList.push(itemToSave);
+      }
+      currentList.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+      if (stRow) {
+        await supabase.from('site_settings').update({ setting_value: currentList, updated_at: new Date().toISOString() }).eq('setting_key', 'frame_styles');
+      } else {
+        await supabase.from('site_settings').insert({ setting_key: 'frame_styles', setting_value: currentList });
+      }
+    } catch (e) {
+      if (!savedInTable) throw e;
+    }
+
+    return { success: true, id: savedId };
+  },
+
+  async deleteFrameStyle(id: string) {
+    try {
+      await supabase.from('frame_styles').update({ is_deleted: true, is_active: false }).eq('id', id);
+    } catch {}
+
+    try {
+      const { data: stRow } = await supabase.from('site_settings').select('setting_value').eq('setting_key', 'frame_styles').maybeSingle();
+      if (stRow?.setting_value && Array.isArray(stRow.setting_value)) {
+        const updated = stRow.setting_value.filter((f: any) => f.id !== id);
+        await supabase.from('site_settings').update({ setting_value: updated, updated_at: new Date().toISOString() }).eq('setting_key', 'frame_styles');
+      }
+    } catch {}
+
+    return { success: true };
+  },
+
+  // ============================================================
+  // PRODUCT SIZES & PRICES (DYNAMIC DB)
+  // ============================================================
+  async getProductSizes(productId: string) {
+    if (!productId) return [];
+    const { data, error } = await supabase
+      .from('product_sizes')
+      .select('*')
+      .eq('product_id', productId)
+      .order('price', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching product sizes:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async saveProductSize(sizeData: { id?: string; product_id: string; size: string; price: number; is_led?: boolean }) {
+    if (sizeData.id) {
+      const { data, error } = await supabase
+        .from('product_sizes')
+        .update({
+          size: sizeData.size,
+          price: sizeData.price,
+          is_led: !!sizeData.is_led,
+        })
+        .eq('id', sizeData.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('product_sizes')
+        .insert({
+          product_id: sizeData.product_id,
+          size: sizeData.size,
+          price: sizeData.price,
+          is_led: !!sizeData.is_led,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+  },
+
+  async deleteProductSize(sizeId: string) {
+    const { error } = await supabase
+      .from('product_sizes')
+      .delete()
+      .eq('id', sizeId);
+    if (error) throw error;
+    return true;
   },
 };
 

@@ -4,7 +4,7 @@ import { api } from '../lib/api';
 import { ShoppingCart, Heart, Search, Menu, User, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/vinayak-logo.png';
 
 const TopAnnouncement = ({ text }: { text?: string }) => (
   <div className="bg-primary text-primary-light text-sm font-medium py-2 overflow-hidden flex whitespace-nowrap w-full">

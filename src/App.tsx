@@ -27,6 +27,8 @@ import { AdminSettings } from './pages/admin/AdminSettings';
 import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminVideoReviews } from './pages/admin/AdminVideoReviews';
 import { AdminReels } from './pages/admin/AdminReels';
+import { AdminFrameStyles } from './pages/admin/AdminFrameStyles';
+import { AdminSizesPrices } from './pages/admin/AdminSizesPrices';
 import { OrderSuccess } from './pages/OrderSuccess';
 
 // Layout wrapper for public pages
@@ -65,6 +67,8 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
+              <Route path="frames" element={<AdminFrameStyles />} />
+              <Route path="sizes" element={<AdminSizesPrices />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="reviews" element={<AdminReviews />} />
